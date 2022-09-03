@@ -56,9 +56,11 @@ public:
 
 	void Move();					//이동 처리
 	void InputRun();				//달리기
-	//무기메시 컴포넌트 등록
 	UPROPERTY(VisibleAnywhere, Category = WeaponMesh)
-		class UStaticMeshComponent* weaponComp;
+		class UStaticMeshComponent* weaponComp;			//무기메시 컴포넌트 등록
+
+	UPROPERTY(EditAnywhere)
+		class UBoxComponent* weaponBoxComp;					//무기 충돌체 컴포넌트
 
 	//재생할 일반공격 몽타주
 	//UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)		//bp_player에서 몽타주 삽입
@@ -67,6 +69,7 @@ public:
 	bool isAttacking;				//공격중인가?
 	bool isAttackButtonWhenAttack;	//공격중에 공격을 눌렀는가
 	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
+	bool canDamage;					//공격모션 중 대미지가 들어가는 모션중인가?
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수
@@ -78,4 +81,12 @@ public:
 		void AttackInputChecking();
 	UFUNCTION(BlueprintCallable)	//공격이 끝났는지 확인 함수
 		void EndAttacking();
+	UFUNCTION(BlueprintCallable)	//공격의 데미지 영역 부분인지 확인 함수
+		void AttackDamageApplying();
+	UFUNCTION(BlueprintCallable)	//공격의 데미지 영역 부분이 끝나는 함수
+		void AttackDamageEnd();
+	//무기 콜리전에 무언가 닿았다.
+	UFUNCTION()
+		void WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, 
+			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

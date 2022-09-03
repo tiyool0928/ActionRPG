@@ -26,4 +26,17 @@ public:
 		class UBoxComponent* boxComp;			//충돌체 컴포넌트
 	UPROPERTY(EditAnywhere)
 		class UStaticMeshComponent* meshComp;	//메시 컴포넌트
+
+	FTimerHandle Shake1TimerHandle;	//피격 흔들림 타이머
+	FTimerHandle Shake2TimerHandle;	//피격 흔들림 타이머
+	bool isBeingHit;
+
+	UPROPERTY(EditAnywhere, Category = EnemySetting)
+		float health;
+
+	void ShakeMesh();				//메시 피격 시 흔들기
+	void Shake1Delay();				//피격1 딜레이
+	void Shake2Delay();				//피격2 딜레이
+
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };

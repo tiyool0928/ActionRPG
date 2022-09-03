@@ -4,6 +4,9 @@
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
 #include "Animation/AnimMontage.h"
+#include "Components/BoxComponent.h"
+#include "Kismet/GameplayStatics.h"
+//#include "EnemyLog.h"
 //#include "Animation/AnimInstance.h"
 #include <GameFramework/SpringArmComponent.h>
 #include <Camera/CameraComponent.h>
@@ -46,14 +49,22 @@ AActionPlayer1::AActionPlayer1()
 		weaponComp->SetRelativeRotation(FRotator(160, 10, 0));
 	}
 
+	weaponBoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Weapon Collision"));	//충돌체 컴포넌트
+	weaponBoxComp->SetupAttachment(weaponComp);
+	weaponBoxComp->SetRelativeLocation(FVector(-30, 0, -18));
+	weaponBoxComp->SetRelativeRotation(FRotator(-30, 0, 0));
+	weaponBoxComp->SetWorldScale3D(FVector(2, 0.5, 0.5));
+	
+
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
 	JumpMaxCount = 2;									//다중점프 설정
-	isRollingAnim = false;								//처음은 구르는중 X
+	isRollingAnim = false;
 	rollingCoolTime = 5;								//구르기 쿨타임 = 5초
-	isAttacking = false;								//처음은 공격중 X
-	isAttackButtonWhenAttack = false;					//공격중에 콤보어택을 호출했는가?
+	isAttacking = false;
+	isAttackButtonWhenAttack = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
-	isCoolTimeRolling = false;							//처음은 구르기쿨타임 off
+	isCoolTimeRolling = false;
+	canDamage = false;
 }
 
 // Called when the game starts or when spawned
@@ -63,7 +74,7 @@ void AActionPlayer1::BeginPlay()
 
 	//초기 속도 걷기속도
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
-	
+	weaponBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::WeaponOnOverlapBegin);
 }
 
 // Called every frame
@@ -78,7 +89,9 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	//좌우 축 바인딩
 	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &AActionPlayer1::Turn);
+	//상하 축 바인딩
 	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &AActionPlayer1::LookUp);
 	//좌우 입력 바인딩
 	PlayerInputComponent->BindAxis(TEXT("Horizontal"), this, &AActionPlayer1::InputHorizontal);
@@ -199,6 +212,7 @@ void AActionPlayer1::DashAttack()
 	anim->PlayDashAttackMontage();		//대쉬어택 애니메이션 재생
 	isAttacking = true;
 	isDashAttacking = true;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);		//애니메이션 z축 활성화
 	//2초 뒤 대쉬어택 모션 끝
 	GetWorldTimerManager().SetTimer(DashAttackAnimTimerHandle, this, &AActionPlayer1::DashAttackDelay, 2.0f, true);
 	
@@ -209,6 +223,7 @@ void AActionPlayer1::DashAttackDelay()
 	GetWorldTimerManager().ClearTimer(DashAttackAnimTimerHandle);		//대쉬어택 모션타이머 초기화
 	isAttacking = false;						//공격 끝
 	isDashAttacking = false;					//대쉬공격 끝
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);		//애니메이션 z축 활성화
 }
 
 void AActionPlayer1::NormalAttack()
@@ -222,7 +237,6 @@ void AActionPlayer1::NormalAttack()
 
 	if (!anim->Montage_IsPlaying(anim->NormalAttackMontage))	//공격 몽타주가 실행중이지 않을때
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("MontagePlay!"));
 		anim->PlayNormalAttackAnim();		//일반공격 애니메이션 on
 		isAttacking = true;
 	}
@@ -236,8 +250,6 @@ void AActionPlayer1::NormalAttack()
 
 void AActionPlayer1::AttackInputChecking()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("AttackInputChecking!"));
-
 	if (isAttackButtonWhenAttack)
 	{
 		comboCnt++;
@@ -250,8 +262,26 @@ void AActionPlayer1::AttackInputChecking()
 
 void AActionPlayer1::EndAttacking()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("EndAttacking!"));
 	isAttacking = false;
 	comboCnt = 0;
+}
+
+void AActionPlayer1::AttackDamageApplying()
+{
+	canDamage = true;
+}
+
+void AActionPlayer1::AttackDamageEnd()
+{
+	canDamage = false;
+}
+
+void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!isAttacking) return;
+	if (OtherActor && (OtherActor != this) && OtherComp && canDamage)
+	{
+		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
+	}
 }
 
