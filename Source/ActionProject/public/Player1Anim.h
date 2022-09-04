@@ -30,12 +30,16 @@ public:
 	//재생할 대쉬공격 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* DashAttackMontage;
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* Skill1Montage;
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
 	//일반공격 애니메이션 재생
 	void PlayNormalAttackAnim();
 	//대쉬공격 애니메이션 재생
 	void PlayDashAttackMontage();
+	//스킬1 애니메이션 재생
+	void PlaySkill1Montage();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

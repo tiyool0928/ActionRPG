@@ -28,6 +28,14 @@ void UPlayer1Anim::PlayDashAttackMontage()
 	}
 }
 
+void UPlayer1Anim::PlaySkill1Montage()
+{
+	if (Skill1Montage != nullptr)
+	{
+		Montage_Play(Skill1Montage);
+	}
+}
+
 void UPlayer1Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
