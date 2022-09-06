@@ -29,7 +29,7 @@ public:
 
 	FTimerHandle Shake1TimerHandle;	//피격 흔들림 타이머
 	FTimerHandle Shake2TimerHandle;	//피격 흔들림 타이머
-	bool isBeingHit;
+	bool isBeingHit;				//피격 당했는가(피격모션을 위한 딜레이 변수)
 
 	UPROPERTY(EditAnywhere, Category = EnemySetting)
 		float health;

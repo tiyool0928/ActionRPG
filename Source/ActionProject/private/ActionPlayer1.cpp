@@ -4,9 +4,11 @@
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
 #include "Player1_Skill1.h"
+#include "EnemyLog.h"
 #include "Animation/AnimMontage.h"
 #include "Components/BoxComponent.h"
 #include "Components/ArrowComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
 //#include "EnemyLog.h"
 //#include "Animation/AnimInstance.h"
@@ -60,7 +62,24 @@ AActionPlayer1::AActionPlayer1()
 	weaponBoxComp->SetRelativeLocation(FVector(-30, 0, -18));
 	weaponBoxComp->SetRelativeRotation(FRotator(-30, 0, 0));
 	weaponBoxComp->SetWorldScale3D(FVector(2, 0.5, 0.5));
-	
+	//스킬 2 충격체 컴포넌트
+	skill2BoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Skill2 Collision"));
+	skill2BoxComp->SetupAttachment(RootComponent);
+	skill2BoxComp->SetWorldScale3D(FVector(7, 7, 2));
+	skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//스킬 2 이펙트 컴포넌트
+	skill2EffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Skill2 Effect"));
+	skill2EffectComp->SetupAttachment(skill2BoxComp);
+	skill2EffectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ConstructorHelpers::FObjectFinder<UParticleSystem> TempEffect(TEXT("ParticleSystem'/Game/FXVarietyPack/Particles/P_ky_healAura_2.P_ky_healAura_2'"));
+
+	if (TempEffect.Succeeded())
+	{
+		skill2EffectComp->SetTemplate(TempEffect.Object);
+		skill2EffectComp->SetRelativeLocation(FVector(0, 0, 15));
+		skill2EffectComp->SetWorldScale3D(FVector(0.25f, 0.25f, 0.1f));
+		skill2EffectComp->SetVisibility(false);
+	}
 
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
 	JumpMaxCount = 2;									//다중점프 설정
@@ -72,6 +91,7 @@ AActionPlayer1::AActionPlayer1()
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
 	isCoolTimeRolling = false;
 	canDamage = false;
+	skill2Delay = false;
 }
 
 // Called when the game starts or when spawned
@@ -81,7 +101,11 @@ void AActionPlayer1::BeginPlay()
 
 	//초기 속도 걷기속도
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+	//무기 충돌체에 overlapbegin 할당
 	weaponBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::WeaponOnOverlapBegin);
+	//스킬2 충돌체에 overlapbegin 할당
+	skill2BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::Skill2OnOverlapBegin);
+	skill2BoxComp->OnComponentEndOverlap.AddDynamic(this, &AActionPlayer1::Skill2OnOverlapEnd);
 }
 
 // Called every frame
@@ -89,6 +113,19 @@ void AActionPlayer1::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	Move();					//캐릭터 이동 함수
+
+	if (OverLapSkill2Actors.Num() > 0)				//스킬2를 쓰는중에 액터가 들어와있으면
+	{
+		if (!skill2Delay)							//딜레이가 비활성화 되어있다면
+		{
+			for (int i = 0; i < OverLapSkill2Actors.Num(); i++)
+			{
+				UGameplayStatics::ApplyDamage(OverLapSkill2Actors[i], 100.0f, nullptr, this, nullptr);
+			}
+			skill2Delay = true;
+			GetWorldTimerManager().SetTimer(Skill2DamageDelayHandle, this, &AActionPlayer1::Skill2DamageDelay, 0.5f, true);
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -113,6 +150,7 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AActionPlayer1::LMB_Click);
 	//스킬 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer1::InputSkill1);
+	PlayerInputComponent->BindAction(TEXT("Skill2"), IE_Pressed, this, &AActionPlayer1::InputSkill2);
 }
 
 void AActionPlayer1::Turn(float value)
@@ -275,6 +313,15 @@ void AActionPlayer1::EndAttacking()
 {
 	isAttacking = false;
 	isSkillAttacking = false;
+	auto movement = GetCharacterMovement();
+	if (movement->MaxWalkSpeed == runSpeed)		//스킬2사용으로 인해 빨라진 상태면
+	{
+		movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
+		//충돌체 컴포넌트 비활성화
+		skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//이펙트 컴포넌트 안보이게
+		skill2EffectComp->SetVisibility(false);
+	}
 	comboCnt = 0;
 }
 
@@ -290,7 +337,7 @@ void AActionPlayer1::AttackDamageEnd()
 
 void AActionPlayer1::InputSkill1()
 {
-	if (isRollingAnim || isDashAttacking) return;			//구르고 있거나 이미 대쉬공격중이면 공격X
+	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill1Montage) return;
@@ -305,6 +352,28 @@ void AActionPlayer1::CreateSkill1Effect()
 	GetWorld()->SpawnActor<APlayer1_Skill1>(skill1Factory, skillPosition);
 }
 
+void AActionPlayer1::InputSkill2()
+{
+	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+
+	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->Skill2Montage) return;
+
+	anim->PlaySkill2Montage();
+	auto movement = GetCharacterMovement();
+	movement->MaxWalkSpeed = runSpeed;
+	//충격체 컴포넌트 활성화
+	skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	skill2EffectComp->SetVisibility(true);
+}
+
+void AActionPlayer1::Skill2DamageDelay()
+{
+	GetWorldTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
+	skill2Delay = false;
+	UE_LOG(LogTemp, Warning, TEXT("Delay"));
+}
+
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!isAttacking) return;
@@ -312,5 +381,21 @@ void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedC
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 	}
+}
+
+void AActionPlayer1::Skill2OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this))
+	{
+		//AddUnique = 컨테이너에 없을 경우 추가
+		OverLapSkill2Actors.AddUnique(OtherActor);			//skill2를 맞고있는 액터배열에 추가
+		//UGameplayStatics::ApplyDamage(OtherActor, 100.0f, nullptr, this, nullptr);
+	}
+}
+
+
+void AActionPlayer1::Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	OverLapSkill2Actors.Remove(OtherActor);
 }
 

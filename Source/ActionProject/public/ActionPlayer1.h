@@ -53,6 +53,7 @@ public:
 	FTimerHandle RollingCoolTimerHandle;	//구르기 쿨 타이머 생성 및 관리
 	FTimerHandle RollingAnimTimerHandle;	//구르기 애니메이션 재생 타이머 생성 및 관리
 	FTimerHandle DashAttackAnimTimerHandle;	//대쉬공격 모션 재생 타이머 생성 및 관리
+	FTimerHandle Skill2DamageDelayHandle;	//스킬2 틱 데미지 딜레이 관리
 
 	void Move();					//이동 처리
 	void InputRun();				//달리기
@@ -64,6 +65,12 @@ public:
 		TSubclassOf<class APlayer1_Skill1> skill1Factory;	//스킬 액터생성팩토리
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* skillArrow;
+	UPROPERTY(EditAnywhere, Category = Skill2)
+		class UBoxComponent* skill2BoxComp;					//스킬2 충돌체 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = Skill2)
+		class UParticleSystemComponent* skill2EffectComp;	//이펙트 컴포넌트
+	
+	
 
 	//재생할 일반공격 몽타주
 	//UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)		//bp_player에서 몽타주 삽입
@@ -74,12 +81,16 @@ public:
 	bool isAttackButtonWhenAttack;	//공격중에 공격을 눌렀는가
 	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
 	bool canDamage;					//공격모션 중 대미지가 들어가는 모션중인가?
+	bool skill2Delay;				//스킬2 데미지 틱 딜레이를 위한 변수
+	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수
 	void RollingDelay();			//구르기 애니메이션 딜레이 함수
 	void DashAttackDelay();			//대쉬공격 모션 딜레이 함수
+	void Skill2DamageDelay();		//스킬2 틱 데미지 딜레이 함수
 	void InputSkill1();				//스킬1 함수
+	void InputSkill2();				//스킬2 함수
 
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//공격중에 한번 더 공격을 눌렀는지 확인 함수
@@ -97,4 +108,10 @@ public:
 	UFUNCTION()
 		void WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, 
 			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+		void Skill2OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+		void Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 };
