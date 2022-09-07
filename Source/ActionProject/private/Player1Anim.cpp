@@ -44,6 +44,14 @@ void UPlayer1Anim::PlaySkill2Montage()
 	}
 }
 
+void UPlayer1Anim::PlaySkill3Montage()
+{
+	if (Skill3Montage != nullptr)
+	{
+		Montage_Play(Skill3Montage);
+	}
+}
+
 void UPlayer1Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);

@@ -4,6 +4,7 @@
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
 #include "Player1_Skill1.h"
+#include "Player1_Skill3.h"
 #include "EnemyLog.h"
 #include "Animation/AnimMontage.h"
 #include "Components/BoxComponent.h"
@@ -87,6 +88,7 @@ AActionPlayer1::AActionPlayer1()
 	rollingCoolTime = 5;								//구르기 쿨타임 = 5초
 	isAttacking = false;
 	isSkillAttacking = false;
+	isSkill2Attacking = false;
 	isAttackButtonWhenAttack = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
 	isCoolTimeRolling = false;
@@ -151,6 +153,7 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	//스킬 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer1::InputSkill1);
 	PlayerInputComponent->BindAction(TEXT("Skill2"), IE_Pressed, this, &AActionPlayer1::InputSkill2);
+	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Pressed, this, &AActionPlayer1::InputSkill3);
 }
 
 void AActionPlayer1::Turn(float value)
@@ -179,6 +182,16 @@ void AActionPlayer1::InputDodgeRoll()
 	//구르기 애니메이션 재생
 	if (!isCoolTimeRolling && !isDashAttacking)				//구르기 쿨타임이 돌고 있지 않으면서 대쉬공격중이 아니라면
 	{
+		if (isSkill2Attacking)		//스킬2 활성화중이었다면
+		{
+			auto movement = GetCharacterMovement();
+			movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
+			//충돌체 컴포넌트 비활성화
+			skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			//이펙트 컴포넌트 안보이게
+			skill2EffectComp->SetVisibility(false);
+			isSkill2Attacking = false;
+		}
 		
 		auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 		anim->PlayDodgeRollAnim();		//구르기 애니메이션 on
@@ -253,7 +266,8 @@ void AActionPlayer1::RollingDelay()
 
 void AActionPlayer1::DashAttack()
 {
-	if (isRollingAnim || isDashAttacking) return;			//구르고 있거나 이미 대쉬공격중이면 공격X
+	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
+	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking) return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->DashAttackMontage) return;
@@ -314,13 +328,14 @@ void AActionPlayer1::EndAttacking()
 	isAttacking = false;
 	isSkillAttacking = false;
 	auto movement = GetCharacterMovement();
-	if (movement->MaxWalkSpeed == runSpeed)		//스킬2사용으로 인해 빨라진 상태면
+	if (isSkill2Attacking)		//스킬2 활성화중이었다면
 	{
 		movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
 		//충돌체 컴포넌트 비활성화
 		skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		//이펙트 컴포넌트 안보이게
 		skill2EffectComp->SetVisibility(false);
+		isSkill2Attacking = false;
 	}
 	comboCnt = 0;
 }
@@ -356,10 +371,14 @@ void AActionPlayer1::InputSkill2()
 {
 	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
 
+	if(isAttacking)							//공격중에 스킬2를 썼으면
+		isAttacking = false;
+
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill2Montage) return;
 
 	anim->PlaySkill2Montage();
+	isSkill2Attacking = true;
 	auto movement = GetCharacterMovement();
 	movement->MaxWalkSpeed = runSpeed;
 	//충격체 컴포넌트 활성화
@@ -372,6 +391,24 @@ void AActionPlayer1::Skill2DamageDelay()
 	GetWorldTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
 	skill2Delay = false;
 	UE_LOG(LogTemp, Warning, TEXT("Delay"));
+}
+
+void AActionPlayer1::InputSkill3()
+{
+	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+
+	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->Skill3Montage) return;
+
+	anim->PlaySkill3Montage();
+	isSkillAttacking = true;
+}
+
+void AActionPlayer1::CreateSkill3Effect()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Before Effect"));
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer1_Skill3>(skill3Factory, skillPosition);
 }
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

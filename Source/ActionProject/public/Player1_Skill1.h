@@ -27,7 +27,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		class UBoxComponent* boxComp;			//충돌체 컴포넌트
-	UPROPERTY(VisibleAnywhere, Category = WeaponMesh)
+	UPROPERTY(VisibleAnywhere, Category = EffectMesh)
 		class UParticleSystemComponent* effectComp;			//이펙트 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = Movement)
 		class UProjectileMovementComponent* movementComp;			//발사체 이동 컴포넌트

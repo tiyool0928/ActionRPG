@@ -2,6 +2,7 @@
 
 
 #include "Player1_Skill1.h"
+#include "ActionPlayer1.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/Classes/Particles/ParticleSystemComponent.h"
@@ -11,7 +12,7 @@
 APlayer1_Skill1::APlayer1_Skill1()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	//충돌체 컴포넌트
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Collider"));
 	SetRootComponent(boxComp);
@@ -61,7 +62,10 @@ void APlayer1_Skill1::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 {
 	if (OtherActor && (OtherActor != this) && OtherComp)
 	{
-		UGameplayStatics::ApplyDamage(OtherActor, 300.0f, nullptr, this, nullptr);
+		auto otherActor = Cast<AActionPlayer1>(OtherActor);
+
+		if(OtherActor != otherActor)
+			UGameplayStatics::ApplyDamage(OtherActor, 300.0f, nullptr, this, nullptr);
 	}
 }
 
