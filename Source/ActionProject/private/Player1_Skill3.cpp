@@ -20,14 +20,26 @@ APlayer1_Skill3::APlayer1_Skill3()
 	boxComp->SetWorldScale3D(FVector(3.0f, 3.0f, 2.0f));
 	boxComp->SetBoxExtent(FVector(150.0f, 150.0f, 32.0f));
 	//외관 이펙트 컴포넌트
-	effectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp"));
-	effectComp->SetupAttachment(boxComp);
-	effectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	effectComp1 = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp1"));
+	effectComp1->SetupAttachment(boxComp);
+	effectComp1->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	effectComp2 = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp2"));
+	effectComp2->SetupAttachment(boxComp);
+	effectComp2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	effectComp3 = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp3"));
+	effectComp3->SetupAttachment(boxComp);
+	effectComp3->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	ConstructorHelpers::FObjectFinder<UParticleSystem> TempEffect(TEXT("ParticleSystem'/Game/InfinityBladeEffects/Effects/FX_Skill_Whirlwind/P_Whirlwind_Default_WeaponTrail_01.P_Whirlwind_Default_WeaponTrail_01'"));
 	if (TempEffect.Succeeded())
 	{
-		effectComp->SetTemplate(TempEffect.Object);
-		effectComp->SetRelativeLocation(FVector(0, 0, -20));
+		effectComp1->SetTemplate(TempEffect.Object);
+		effectComp1->SetRelativeLocation(FVector(0, 0, -20));
+		effectComp2->SetTemplate(TempEffect.Object);
+		effectComp2->SetRelativeLocation(FVector(0, 0, -20));
+		effectComp2->SetWorldScale3D(FVector(0.6f, 0.6f, 1.0f));
+		effectComp3->SetTemplate(TempEffect.Object);
+		effectComp3->SetRelativeLocation(FVector(0, 0, -20));
+		effectComp3->SetWorldScale3D(FVector(0.3f, 0.3f, 1.0f));
 	}
 }
 

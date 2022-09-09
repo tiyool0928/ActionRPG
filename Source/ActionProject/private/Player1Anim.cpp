@@ -3,6 +3,7 @@
 
 #include "Player1Anim.h"
 #include "ActionPlayer1.h"
+#include "Kismet/KismetMathLibrary.h"
 
 void UPlayer1Anim::PlayDodgeRollAnim()
 {
@@ -49,6 +50,14 @@ void UPlayer1Anim::PlaySkill3Montage()
 	if (Skill3Montage != nullptr)
 	{
 		Montage_Play(Skill3Montage);
+	}
+}
+
+void UPlayer1Anim::PlaySkill4Montage()
+{
+	if (Skill4Montage != nullptr)
+	{
+		Montage_Play(Skill4Montage);
 	}
 }
 

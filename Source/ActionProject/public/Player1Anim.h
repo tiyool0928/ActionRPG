@@ -36,6 +36,8 @@ public:
 		class UAnimMontage* Skill2Montage;
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* Skill3Montage;
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* Skill4Montage;
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
 	//일반공격 애니메이션 재생
@@ -46,6 +48,7 @@ public:
 	void PlaySkill1Montage();
 	void PlaySkill2Montage();
 	void PlaySkill3Montage();
+	void PlaySkill4Montage();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

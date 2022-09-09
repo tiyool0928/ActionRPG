@@ -32,8 +32,8 @@ APlayer1_Skill1::APlayer1_Skill1()
 	//발사체 컴포넌트
 	movementComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("MovementComp"));
 	movementComp->SetUpdatedComponent(boxComp);
-	movementComp->InitialSpeed = 500;
-	movementComp->MaxSpeed = 500;
+	movementComp->InitialSpeed = 1000;
+	movementComp->MaxSpeed = 1000;
 	movementComp->ProjectileGravityScale = 0;
 }
 

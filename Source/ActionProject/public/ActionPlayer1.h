@@ -54,6 +54,8 @@ public:
 	FTimerHandle RollingAnimTimerHandle;	//구르기 애니메이션 재생 타이머 생성 및 관리
 	FTimerHandle DashAttackAnimTimerHandle;	//대쉬공격 모션 재생 타이머 생성 및 관리
 	FTimerHandle Skill2DamageDelayHandle;	//스킬2 틱 데미지 딜레이 관리
+	FTimerHandle Skill4FeverOnHandle;		//스킬4 강화공격 딜레이 관리
+	FTimerHandle Skill4FeverOffHandle;		//스킬4 강화공격 피버 종료 딜레이 관리
 
 	void Move();					//이동 처리
 	void InputRun();				//달리기
@@ -85,6 +87,7 @@ public:
 	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
 	bool canDamage;					//공격모션 중 대미지가 들어가는 모션중인가?
 	bool skill2Delay;				//스킬2 데미지 틱 딜레이를 위한 변수
+	bool skill4FeverTime;			//스킬4 강화공격 타임이 켜졌는가?
 	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();			//일반 공격 함수
@@ -92,9 +95,12 @@ public:
 	void RollingDelay();			//구르기 애니메이션 딜레이 함수
 	void DashAttackDelay();			//대쉬공격 모션 딜레이 함수
 	void Skill2DamageDelay();		//스킬2 틱 데미지 딜레이 함수
+	void Skill4FeverOnDelay();		//스킬4 강화공격 딜레이 함수
+	void Skill4FeverOffDelay();		//스킬4 강화공격 피버 종료 함수
 	void InputSkill1();				//스킬1 함수
 	void InputSkill2();				//스킬2 함수
 	void InputSkill3();				//스킬3 함수
+	void InputSkill4();				//스킬4 함수
 
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//공격중에 한번 더 공격을 눌렀는지 확인 함수

@@ -26,7 +26,11 @@ public:
 	UPROPERTY(EditAnywhere)
 		class UBoxComponent* boxComp;			//충돌체 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = EffectMesh)
-		class UParticleSystemComponent* effectComp;			//이펙트 컴포넌트
+		class UParticleSystemComponent* effectComp1;			//큰 이펙트 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = EffectMesh)
+		class UParticleSystemComponent* effectComp2;			//중간 이펙트 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = EffectMesh)
+		class UParticleSystemComponent* effectComp3;			//작은 이펙트 컴포넌트
 
 	FTimerHandle deathTimerHandle;					//스킬이 끝나는 시간
 
