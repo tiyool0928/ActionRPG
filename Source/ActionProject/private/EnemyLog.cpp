@@ -26,7 +26,7 @@ AEnemyLog::AEnemyLog()
 		meshComp->SetRelativeRotation(FRotator(90, 0, 0));
 	}
 
-	health = 10000.0f;						//통나무 체력
+	health = 99999999.9f;						//통나무 체력
 	isBeingHit = false;
 }
 

@@ -73,12 +73,18 @@ public:
 		TSubclassOf<class APlayer1_Skill4> skill4Factory;	//스킬 4액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer1_Skill4Landing> skill4LandingFactory;	//스킬 4액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer1_UltimateBoom> ultimateFactory;	//궁극기 액터생성팩토리
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* skillArrow;
 	UPROPERTY(EditAnywhere, Category = Skill2)
 		class UBoxComponent* skill2BoxComp;					//스킬2 충돌체 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = Skill2)
 		class UParticleSystemComponent* skill2EffectComp;	//이펙트 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = UltimateMesh)
+		class UParticleSystemComponent* ultimateEffectComp;				//궁극기 파티클 컴포넌트 등록
+	UPROPERTY(EditAnywhere)
+		class UBoxComponent* ultimateBoxComp;					//궁극기 충돌체 컴포넌트
 	
 	
 
@@ -90,6 +96,8 @@ public:
 	bool isSkillAttacking;			//스킬공격중인가?		(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
 	bool isSkill2Attacking;			//스킬2공격중인가?	(일반공격중에 가능, 움직임o, 구르기 o, 대쉬어택 x)
 	bool isSkill4Flying;			//스킬4 공격모션중인가?	(구르기 x)
+	bool isSkill4Releasing;			//스킬4 버튼을 누르고있는가?
+	bool isUltimateAttacking;		//궁극기 모션중인가? (구르기 x)
 	bool isAttackButtonWhenAttack;	//공격중에 공격을 눌렀는가
 	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
 	bool canDamage;					//공격모션 중 대미지가 들어가는 모션중인가?
@@ -111,6 +119,7 @@ public:
 	void InputSkill3();				//스킬3 함수
 	void InputSkill4();				//스킬4 함수
 	void OutputSkill4();			//스킬4 함수
+	void InputUltimate();			//궁극기 함수
 
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//공격중에 한번 더 공격을 눌렀는지 확인 함수
@@ -125,8 +134,8 @@ public:
 		void CreateSkill1Effect();
 	UFUNCTION(BlueprintCallable)	//스킬3 이펙트 출력 함수
 		void CreateSkill3Effect();
-	UFUNCTION(BlueprintCallable)	//스킬3 이펙트 출력 함수
-		void Skill4CanDodge();		//스킬4 모션 이후 구르기 가능 확인 함수
+	UFUNCTION(BlueprintCallable)	//스킬4 모션 이후 구르기 가능 확인 함수
+		void Skill4CanDodge();
 
 	//콜리전 함수
 	UFUNCTION()
@@ -138,4 +147,7 @@ public:
 	UFUNCTION()
 		void Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	UFUNCTION()
+		void UltimateSmashOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

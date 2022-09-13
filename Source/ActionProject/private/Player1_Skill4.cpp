@@ -17,9 +17,9 @@ APlayer1_Skill4::APlayer1_Skill4()
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Collider"));
 	SetRootComponent(boxComp);
 	boxComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	boxComp->SetBoxExtent(FVector(100.0f, 100.0f, 100.0f));
+	boxComp->SetBoxExtent(FVector(400.0f, 400.0f, 100.0f));
 	//외관 이펙트 컴포넌트
-	effectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp1"));
+	effectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp"));
 	effectComp->SetupAttachment(boxComp);
 	ConstructorHelpers::FObjectFinder<UParticleSystem> tempEffect(TEXT("ParticleSystem'/Game/Particles/Skill4_FeverEffect.Skill4_FeverEffect'"));
 
@@ -27,6 +27,7 @@ APlayer1_Skill4::APlayer1_Skill4()
 	{
 		effectComp->SetTemplate(tempEffect.Object);
 		effectComp->SetRelativeLocation(FVector(20, 0, -70));
+		effectComp->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	}
 }
 

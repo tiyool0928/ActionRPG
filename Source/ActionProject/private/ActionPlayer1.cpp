@@ -7,6 +7,7 @@
 #include "Player1_Skill3.h"
 #include "Player1_Skill4.h"
 #include "Player1_Skill4Landing.h"
+#include "Player1_UltimateBoom.h"
 #include "EnemyLog.h"
 #include "Animation/AnimMontage.h"
 #include "Components/BoxComponent.h"
@@ -74,14 +75,32 @@ AActionPlayer1::AActionPlayer1()
 	skill2EffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Skill2 Effect"));
 	skill2EffectComp->SetupAttachment(skill2BoxComp);
 	skill2EffectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ConstructorHelpers::FObjectFinder<UParticleSystem> TempEffect(TEXT("ParticleSystem'/Game/FXVarietyPack/Particles/P_ky_healAura_2.P_ky_healAura_2'"));
-
-	if (TempEffect.Succeeded())
+	ConstructorHelpers::FObjectFinder<UParticleSystem> skill2Effect(TEXT("ParticleSystem'/Game/FXVarietyPack/Particles/P_ky_healAura_2.P_ky_healAura_2'"));
+	if (skill2Effect.Succeeded())
 	{
-		skill2EffectComp->SetTemplate(TempEffect.Object);
+		skill2EffectComp->SetTemplate(skill2Effect.Object);
 		skill2EffectComp->SetRelativeLocation(FVector(0, 0, 15));
 		skill2EffectComp->SetWorldScale3D(FVector(0.25f, 0.25f, 0.1f));
 		skill2EffectComp->SetVisibility(false);
+	}
+
+	//궁극기 충격체 컴포넌트
+	ultimateBoxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("ultimate Collision"));
+	ultimateBoxComp->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
+	ultimateBoxComp->SetRelativeLocation(FVector(-160, -27, 180));
+	ultimateBoxComp->SetRelativeRotation(FRotator(40, 10, 0));
+	ultimateBoxComp->SetWorldScale3D(FVector(1, 1, 6));
+	//궁극기 이펙트 컴포넌트
+	ultimateEffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ultimate Effect"));
+	ultimateEffectComp->SetupAttachment(ultimateBoxComp);
+	ultimateEffectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ConstructorHelpers::FObjectFinder<UParticleSystem> ultimateEffect(TEXT("ParticleSystem'/Game/FXVarietyPack/Particles/P_ky_fireStorm.P_ky_fireStorm'"));
+	if (ultimateEffect.Succeeded())
+	{
+		ultimateEffectComp->SetTemplate(ultimateEffect.Object);
+		ultimateEffectComp->SetVisibility(false);
+		ultimateEffectComp->SetRelativeLocation(FVector(0, 0, -35));
+		ultimateEffectComp->SetWorldScale3D(FVector(0.4f, 0.1f, 0.2f));
 	}
 
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
@@ -92,6 +111,8 @@ AActionPlayer1::AActionPlayer1()
 	isSkillAttacking = false;
 	isSkill2Attacking = false;
 	isSkill4Flying = false;
+	isSkill4Releasing = false;
+	isUltimateAttacking = false;
 	isAttackButtonWhenAttack = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
 	isCoolTimeRolling = false;
@@ -112,6 +133,8 @@ void AActionPlayer1::BeginPlay()
 	//스킬2 충돌체에 overlapbegin 할당
 	skill2BoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::Skill2OnOverlapBegin);
 	skill2BoxComp->OnComponentEndOverlap.AddDynamic(this, &AActionPlayer1::Skill2OnOverlapEnd);
+	//궁극기 충돌체에 overlapbegin 할당
+	ultimateBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::UltimateSmashOnOverlapBegin);
 }
 
 // Called every frame
@@ -161,6 +184,7 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Pressed, this, &AActionPlayer1::InputSkill3);
 	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Pressed, this, &AActionPlayer1::InputSkill4);
 	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Released, this, &AActionPlayer1::OutputSkill4);
+	PlayerInputComponent->BindAction(TEXT("Ultimate"), IE_Pressed, this, &AActionPlayer1::InputUltimate);
 }
 
 void AActionPlayer1::Turn(float value)
@@ -187,7 +211,8 @@ void AActionPlayer1::InputVertical(float value)
 void AActionPlayer1::InputDodgeRoll()
 {
 	//구르기 애니메이션 재생
-	if (!isCoolTimeRolling && !isSkill4Flying)				//구르기 쿨타임이 돌고 있지 않으면서 스킬4공격모션중이 아니라면
+	//구르기 쿨타임X, 무브먼트가 flyingX, 궁극기 모션중X라면
+	if (!isCoolTimeRolling && !isSkill4Flying && !isUltimateAttacking)
 	{
 		auto movement = GetCharacterMovement();
 		if (isSkill2Attacking)		//스킬2 활성화중이었다면
@@ -237,7 +262,7 @@ void AActionPlayer1::RollingDelay()
 void AActionPlayer1::Move()
 {
 	//구르고있거나 공격중이면 이동 불가능
-	if (isRollingAnim || isAttacking || isSkillAttacking) return;
+	if (isRollingAnim || isAttacking || isSkillAttacking || isUltimateAttacking) return;
 
 	direction = FTransform(GetControlRotation()).TransformVector(direction);
 	AddMovementInput(direction);
@@ -278,7 +303,7 @@ void AActionPlayer1::LMB_Click()
 void AActionPlayer1::DashAttack()
 {
 	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
-	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking)
+	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
@@ -303,7 +328,9 @@ void AActionPlayer1::DashAttackDelay()
 
 void AActionPlayer1::NormalAttack()
 {
-	if (isRollingAnim) return;			//구르고 있으면 공격X
+	//구르고 있으면 스킬, 궁극기 사용중이면 공격X
+	if (isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
+
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	//UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();		//bp_player자체로 애니메이션 받는법
 	//UE_LOG(LogTemp, Warning, TEXT("NormalAttack!"));
@@ -313,14 +340,13 @@ void AActionPlayer1::NormalAttack()
 	if (!anim->Montage_IsPlaying(anim->NormalAttackMontage))	//공격 몽타주가 실행중이지 않을때
 	{
 		anim->PlayNormalAttackAnim();		//일반공격 애니메이션 on
-		isAttacking = true;
 	}
 	else														//공격몽타주가 실행중일때
 	{
 		anim->PlayNormalAttackAnim();
 		anim->Montage_JumpToSection(FName(comboList[comboCnt]), anim->NormalAttackMontage);
-		isAttacking = true;
 	}
+	isAttacking = true;
 }
 
 void AActionPlayer1::AttackInputChecking()
@@ -339,15 +365,21 @@ void AActionPlayer1::EndAttacking()
 {
 	isAttacking = false;
 	isSkillAttacking = false;
-	auto movement = GetCharacterMovement();
 	if (isSkill2Attacking)		//스킬2 활성화중이었다면
 	{
+		auto movement = GetCharacterMovement();
 		movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
 		//충돌체 컴포넌트 비활성화
 		skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		//이펙트 컴포넌트 안보이게
 		skill2EffectComp->SetVisibility(false);
 		isSkill2Attacking = false;
+	}
+	else if (isUltimateAttacking)	//궁극기 사용한 상태라면
+	{
+		isUltimateAttacking = false;
+		ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		ultimateEffectComp->SetVisibility(false);
 	}
 	comboCnt = 0;
 }
@@ -360,6 +392,12 @@ void AActionPlayer1::AttackDamageApplying()
 void AActionPlayer1::AttackDamageEnd()
 {
 	canDamage = false;
+
+	if (isUltimateAttacking)
+	{
+		FTransform skillPosition = skillArrow->GetComponentTransform();
+		GetWorld()->SpawnActor<APlayer1_UltimateBoom>(ultimateFactory, skillPosition);
+	}
 }
 
 void AActionPlayer1::InputSkill1()
@@ -435,6 +473,7 @@ void AActionPlayer1::InputSkill4()
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Section_Start", anim->Skill4Montage);
+	isSkill4Releasing = true;
 	isSkillAttacking = true;
 	isSkill4Flying = true;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);		//애니메이션 z축 활성화
@@ -447,17 +486,17 @@ void AActionPlayer1::OutputSkill4()
 {
 	if (isSkill4Flying)
 	{
-		isSkillAttacking = false;
+		isSkill4Releasing = false;
 	}
 
-	if (!isSkillAttacking) return;
+	if (!isSkill4Releasing) return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4Montage) return;
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkillAttacking = false;
+	isSkill4Releasing = false;
 
 	GetWorldTimerManager().SetTimer
 	(Skill4EndMotionDelayHandle, this, &AActionPlayer1::Skill4EndMotionDelay, 1.0f, true);
@@ -510,6 +549,7 @@ void AActionPlayer1::Skill4EndMotionDelay()
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	GetWorldTimerManager().ClearTimer(Skill4EndMotionDelayHandle);		//스킬4 공격모션 종료
 	anim->StopAllMontages(0.2f);
+	isSkillAttacking = false;
 }
 
 void AActionPlayer1::Skill4CanDodge()
@@ -520,7 +560,7 @@ void AActionPlayer1::Skill4CanDodge()
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer1_Skill4Landing>(skill4LandingFactory, skillPosition);
 
-	if (!isSkillAttacking)
+	if (!isSkill4Releasing)
 	{
 		auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 		GetWorldTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
@@ -530,6 +570,22 @@ void AActionPlayer1::Skill4CanDodge()
 		GetWorldTimerManager().SetTimer
 		(Skill4EndMotionDelayHandle, this, &AActionPlayer1::Skill4EndMotionDelay, 1.0f, true);
 	}
+}
+
+void AActionPlayer1::InputUltimate()
+{
+	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+
+	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->UltimateMontage) return;
+
+	anim->PlayUltimateMontage();
+
+	isUltimateAttacking = true;
+
+	//충격체 컴포넌트 활성화
+	ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ultimateEffectComp->SetVisibility(true);
 }
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -555,5 +611,15 @@ void AActionPlayer1::Skill2OnOverlapBegin(class UPrimitiveComponent* OverlappedC
 void AActionPlayer1::Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	OverLapSkill2Actors.Remove(OtherActor);
+}
+
+void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!isUltimateAttacking) return;
+
+	if (OtherActor && (OtherActor != this) && OtherComp && canDamage)
+	{
+		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
+	}
 }
 
