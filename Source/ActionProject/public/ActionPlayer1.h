@@ -75,6 +75,10 @@ public:
 		TSubclassOf<class APlayer1_Skill4Landing> skill4LandingFactory;	//스킬 4액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer1_UltimateBoom> ultimateFactory;	//궁극기 액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class AGhostTrail> ghostTrailDodgeFactory;	//구르기 잔상 액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class AGhostTrail_Skill> ghostTrailSkillFactory;	//스킬 잔상 액터생성팩토리
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* skillArrow;
 	UPROPERTY(EditAnywhere, Category = Skill2)
@@ -121,6 +125,8 @@ public:
 	void OutputSkill4();			//스킬4 함수
 	void InputUltimate();			//궁극기 함수
 
+	
+
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//공격중에 한번 더 공격을 눌렀는지 확인 함수
 		void AttackInputChecking();
@@ -136,6 +142,10 @@ public:
 		void CreateSkill3Effect();
 	UFUNCTION(BlueprintCallable)	//스킬4 모션 이후 구르기 가능 확인 함수
 		void Skill4CanDodge();
+	UFUNCTION(BlueprintCallable)	//구르기 잔상 생성 함수
+		void CreateGhostTrail_Dodge();
+	UFUNCTION(BlueprintCallable)	//스킬 잔상 생성 함수
+		void CreateGhostTrail_Skill();
 
 	//콜리전 함수
 	UFUNCTION()

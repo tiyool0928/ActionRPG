@@ -26,21 +26,30 @@ AEnemyLog::AEnemyLog()
 		meshComp->SetRelativeRotation(FRotator(90, 0, 0));
 	}
 
-	health = 99999999.9f;						//통나무 체력
+	maxHealth = 99999999;						//통나무 체력
+	health = maxHealth;
 	isBeingHit = false;
+	healCoolTime = false;
 }
 
 // Called when the game starts or when spawned
 void AEnemyLog::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("%f"), health);
+	UE_LOG(LogTemp, Warning, TEXT("%d"), health);
 }
 
 // Called every frame
 void AEnemyLog::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (!healCoolTime)
+	{
+		healCoolTime = true;
+		Heal();
+		GetWorldTimerManager().SetTimer(HealTimerHandle, this, &AEnemyLog::HealTimerDelay, 1.0f, true);
+	}
 
 }
 //피격 함수
@@ -52,7 +61,7 @@ float AEnemyLog::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACont
 	{
 		health -= Damage;
 		ShakeMesh();
-		UE_LOG(LogTemp, Warning, TEXT("%f"), health);
+		UE_LOG(LogTemp, Warning, TEXT("%d"), health);
 	}
 
 	return ActualDamage;
@@ -69,6 +78,22 @@ void AEnemyLog::ShakeMesh()
 	isBeingHit = false;
 }
 
+void AEnemyLog::Heal()
+{
+	if (health >= maxHealth) return;
+	
+	if (health + 100 > maxHealth)
+	{
+		health += (100 - (health % 100));
+	}
+	else
+	{
+		health += 100;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%d"), health);
+}
+
 void AEnemyLog::Shake1Delay()
 {
 	GetWorldTimerManager().ClearTimer(Shake1TimerHandle);
@@ -79,4 +104,10 @@ void AEnemyLog::Shake2Delay()
 {
 	GetWorldTimerManager().ClearTimer(Shake2TimerHandle);
 	meshComp->SetRelativeLocation(FVector(0, 0, 0));
+}
+
+void AEnemyLog::HealTimerDelay()
+{
+	GetWorldTimerManager().ClearTimer(HealTimerHandle);
+	healCoolTime = false;
 }

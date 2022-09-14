@@ -8,6 +8,8 @@
 #include "Player1_Skill4.h"
 #include "Player1_Skill4Landing.h"
 #include "Player1_UltimateBoom.h"
+#include "GhostTrail.h"
+#include "GhostTrail_Skill.h"
 #include "EnemyLog.h"
 #include "Animation/AnimMontage.h"
 #include "Components/BoxComponent.h"
@@ -586,6 +588,34 @@ void AActionPlayer1::InputUltimate()
 	//충격체 컴포넌트 활성화
 	ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ultimateEffectComp->SetVisibility(true);
+}
+
+void AActionPlayer1::CreateGhostTrail_Dodge()
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	FRotator rotator = GetActorRotation();
+	FVector  SpawnLocation = GetActorLocation();
+	auto GTrail_Dodge = Cast<AGhostTrail>(GetWorld()->SpawnActor<AGhostTrail>(ghostTrailDodgeFactory, SpawnLocation, rotator, SpawnParams));
+	if (GTrail_Dodge)
+	{
+		GTrail_Dodge->Init(GetMesh());
+	}
+}
+
+void AActionPlayer1::CreateGhostTrail_Skill()
+{
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+
+	FRotator rotator = GetActorRotation();
+	FVector  SpawnLocation = GetActorLocation();
+	auto GTrail_Skill = Cast<AGhostTrail_Skill>(GetWorld()->SpawnActor<AGhostTrail_Skill>(ghostTrailSkillFactory, SpawnLocation, rotator, SpawnParams));
+	if (GTrail_Skill)
+	{
+		GTrail_Skill->Init(GetMesh());
+	}
 }
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
