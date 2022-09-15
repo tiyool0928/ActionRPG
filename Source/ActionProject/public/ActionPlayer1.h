@@ -29,38 +29,18 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 		class UCameraComponent* tpsCamComp;
 
-	//좌우 입력 처리
-	void Turn(float value);
-	//상하 입력 처리
-	void LookUp(float value);
-	//이동 속도
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)
-		float walkSpeed = 300;
-	UPROPERTY(EditAnywhere, Category = PlayerSetting)
-		float runSpeed = 1200;
-	//이동 방향
-	FVector direction;
-	//좌우 이동 입력
-	void InputHorizontal(float value);
-	//상하 이동 입력
-	void InputVertical(float value);
-
-	void InputDodgeRoll();			//구르기 입력
-	bool isRollingAnim;				//구르기 애니메이션 재생중인가?
-	bool isCoolTimeRolling;			//구르기 쿨타임중인가?
-	float rollingCoolTime;			//구르기 쿨타임
-	void CoolDownRolling();			//구르기 쿨타임 함수
-	FTimerHandle RollingCoolTimerHandle;		//구르기 쿨 타이머 생성 및 관리
-	FTimerHandle RollingAnimTimerHandle;		//구르기 애니메이션 재생 타이머 생성 및 관리
 	FTimerHandle DashAttackAnimTimerHandle;		//대쉬공격 모션 재생 타이머 생성 및 관리
 	FTimerHandle Skill2DamageDelayHandle;		//스킬2 틱 데미지 딜레이 관리
 	FTimerHandle Skill4FeverOnHandle;			//스킬4 강화공격 딜레이 관리
 	FTimerHandle Skill4FeverOffHandle;			//스킬4 강화공격 피버 종료 딜레이 관리
 	FTimerHandle Skill4EndDelayHandle;			//스킬4 애니메이션 딜레이 관리
 	FTimerHandle Skill4EndMotionDelayHandle;	//스킬4 종료 모션 딜레이 관리
+	FTimerHandle Skill1CoolTimerHandle;			//스킬1 쿨 타이머 생성 및 관리
+	FTimerHandle Skill2CoolTimerHandle;			//스킬2 쿨 타이머 생성 및 관리
+	FTimerHandle Skill3CoolTimerHandle;			//스킬3 쿨 타이머 생성 및 관리
+	FTimerHandle Skill4CoolTimerHandle;			//스킬4 쿨 타이머 생성 및 관리
+	FTimerHandle UltimateCoolTimerHandle;		//궁극기 쿨 타이머 생성 및 관리
 
-	void Move();					//이동 처리
-	void InputRun();				//달리기
 	UPROPERTY(VisibleAnywhere, Category = WeaponMesh)
 		class UStaticMeshComponent* weaponComp;				//무기메시 컴포넌트 등록
 	UPROPERTY(EditAnywhere)
@@ -86,15 +66,14 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Skill2)
 		class UParticleSystemComponent* skill2EffectComp;	//이펙트 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = UltimateMesh)
-		class UParticleSystemComponent* ultimateEffectComp;				//궁극기 파티클 컴포넌트 등록
-	UPROPERTY(EditAnywhere)
+		class UParticleSystemComponent* ultimateEffectComp;		//궁극기 파티클 컴포넌트 등록
+	UPROPERTY(EditAnywhere)										
 		class UBoxComponent* ultimateBoxComp;					//궁극기 충돌체 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = Component)			
+		class UPlayerBaseComponent* playerMove;					//이동 컴포넌트
 	
-	
-
-	//재생할 일반공격 몽타주
-	//UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)		//bp_player에서 몽타주 삽입
-	//	class UAnimMontage* NormalAttackMontage;
+	int player1MaxHealth;			//최대체력
+	int player1Health;				//현재체력
 	int comboCnt;					//몇번째 콤보인지 확인변수
 	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	bool isSkillAttacking;			//스킬공격중인가?		(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
@@ -107,11 +86,25 @@ public:
 	bool canDamage;					//공격모션 중 대미지가 들어가는 모션중인가?
 	bool skill2Delay;				//스킬2 데미지 틱 딜레이를 위한 변수
 	bool skill4FeverTime;			//스킬4 강화공격 타임이 켜졌는가?
+	bool isCoolTimeSkill1;			//스킬1 쿨타임중인가?
+	float skill1CoolTime;			//스킬1 쿨타임
+	void CoolDownSkill1();			//스킬1 쿨타임 함수
+	bool isCoolTimeSkill2;			//스킬2 쿨타임중인가?
+	float skill2CoolTime;			//스킬2 쿨타임
+	void CoolDownSkill2();			//스킬2 쿨타임 함수
+	bool isCoolTimeSkill3;			//스킬3 쿨타임중인가?
+	float skill3CoolTime;			//스킬3 쿨타임
+	void CoolDownSkill3();			//스킬3 쿨타임 함수
+	bool isCoolTimeSkill4;			//스킬4 쿨타임중인가?
+	float skill4CoolTime;			//스킬4 쿨타임
+	void CoolDownSkill4();			//스킬4 쿨타임 함수
+	bool isCoolTimeUltimate;		//궁극기 쿨타임중인가?
+	float ultimateCoolTime;			//궁극기 쿨타임
+	void CoolDownUltimate();		//궁극기 쿨타임 함수
 	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수
-	void RollingDelay();			//구르기 애니메이션 딜레이 함수
 	void DashAttackDelay();			//대쉬공격 모션 딜레이 함수
 	void Skill2DamageDelay();		//스킬2 틱 데미지 딜레이 함수
 	void Skill4FeverOnDelay();		//스킬4 강화공격 딜레이 함수

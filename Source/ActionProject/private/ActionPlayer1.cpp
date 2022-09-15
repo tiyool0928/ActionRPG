@@ -3,6 +3,7 @@
 
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
+#include "PlayerMoveComponent.h"
 #include "Player1_Skill1.h"
 #include "Player1_Skill3.h"
 #include "Player1_Skill4.h"
@@ -106,9 +107,13 @@ AActionPlayer1::AActionPlayer1()
 	}
 
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
+
+	playerMove = CreateDefaultSubobject<UPlayerMoveComponent>(TEXT("PlayerMove"));
+
+	player1MaxHealth = 1000;
+	player1Health = player1MaxHealth;
+
 	JumpMaxCount = 2;									//다중점프 설정
-	isRollingAnim = false;
-	rollingCoolTime = 5;								//구르기 쿨타임 = 5초
 	isAttacking = false;
 	isSkillAttacking = false;
 	isSkill2Attacking = false;
@@ -116,8 +121,17 @@ AActionPlayer1::AActionPlayer1()
 	isSkill4Releasing = false;
 	isUltimateAttacking = false;
 	isAttackButtonWhenAttack = false;
+	isCoolTimeSkill1 = false;
+	skill1CoolTime = 4;									//스킬1 쿨타임 = 4초
+	isCoolTimeSkill2 = false;
+	skill2CoolTime = 10;								//스킬2 쿨타임 = 10초
+	isCoolTimeSkill3 = false;
+	skill3CoolTime = 8;									//스킬3 쿨타임 = 8초
+	isCoolTimeSkill4 = false;
+	skill4CoolTime = 15;								//스킬4 쿨타임 = 15초
+	isCoolTimeUltimate = false;
+	ultimateCoolTime = 60;								//궁극기 쿨타임 = 60초
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
-	isCoolTimeRolling = false;
 	canDamage = false;
 	skill2Delay = false;
 	skill4FeverTime = false;
@@ -128,8 +142,6 @@ void AActionPlayer1::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//초기 속도 걷기속도
-	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
 	//무기 충돌체에 overlapbegin 할당
 	weaponBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::WeaponOnOverlapBegin);
 	//스킬2 충돌체에 overlapbegin 할당
@@ -143,8 +155,6 @@ void AActionPlayer1::BeginPlay()
 void AActionPlayer1::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	Move();					//캐릭터 이동 함수
 
 	if (OverLapSkill2Actors.Num() > 0)				//스킬2를 쓰는중에 액터가 들어와있으면
 	{
@@ -165,19 +175,7 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	//좌우 축 바인딩
-	PlayerInputComponent->BindAxis(TEXT("Turn"), this, &AActionPlayer1::Turn);
-	//상하 축 바인딩
-	PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &AActionPlayer1::LookUp);
-	//좌우 입력 바인딩
-	PlayerInputComponent->BindAxis(TEXT("Horizontal"), this, &AActionPlayer1::InputHorizontal);
-	//상하 입력 바인딩
-	PlayerInputComponent->BindAxis(TEXT("Vertical"), this, &AActionPlayer1::InputVertical);
-	//점프 입력 바인딩
-	PlayerInputComponent->BindAction(TEXT("DodgeRoll"), IE_Pressed, this, &AActionPlayer1::InputDodgeRoll);
-	//달리기 입력 바인딩
-	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &AActionPlayer1::InputRun);
-	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &AActionPlayer1::InputRun);
+	playerMove->SetupInputBinding(PlayerInputComponent);
 	//공격 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AActionPlayer1::LMB_Click);
 	//스킬 입력 바인딩
@@ -189,109 +187,15 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Ultimate"), IE_Pressed, this, &AActionPlayer1::InputUltimate);
 }
 
-void AActionPlayer1::Turn(float value)
-{
-	AddControllerYawInput(value);
-}
-
-void AActionPlayer1::LookUp(float value)
-{
-	AddControllerPitchInput(value);
-}
-
-
-void AActionPlayer1::InputHorizontal(float value)
-{
-	direction.Y = value;
-}
-
-void AActionPlayer1::InputVertical(float value)
-{
-	direction.X = value;
-}
-
-void AActionPlayer1::InputDodgeRoll()
-{
-	//구르기 애니메이션 재생
-	//구르기 쿨타임X, 무브먼트가 flyingX, 궁극기 모션중X라면
-	if (!isCoolTimeRolling && !isSkill4Flying && !isUltimateAttacking)
-	{
-		auto movement = GetCharacterMovement();
-		if (isSkill2Attacking)		//스킬2 활성화중이었다면
-		{
-			movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
-			//충돌체 컴포넌트 비활성화
-			skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			//이펙트 컴포넌트 안보이게
-			skill2EffectComp->SetVisibility(false);
-			isSkill2Attacking = false;
-		}
-		auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-		anim->PlayDodgeRollAnim();		//구르기 애니메이션 on
-		if (isSkillAttacking || isAttacking || skill4FeverTime)
-		{
-			isAttacking = false;			//공격 중 구르기 했을 경우 공격 bool타입 false로 변환
-			isSkillAttacking = false;
-			skill4FeverTime = false;
-		}
-		
-		isRollingAnim = true;
-		isCoolTimeRolling = true;		//구르기 쿨타임 on
-		//쿨타임 돌리기
-		GetWorldTimerManager().SetTimer(RollingCoolTimerHandle, this, &AActionPlayer1::CoolDownRolling, 1.0f, true);
-		GetWorldTimerManager().SetTimer(RollingAnimTimerHandle, this, &AActionPlayer1::RollingDelay, 0.5f, true);
-	}
-}
-
-void AActionPlayer1::CoolDownRolling()
-{
-	--rollingCoolTime;
-	
-	if (rollingCoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(RollingCoolTimerHandle);
-		isCoolTimeRolling = false;						//구르기 사용가능
-		rollingCoolTime = 5;
-	}
-}
-
-void AActionPlayer1::RollingDelay()
-{
-	GetWorldTimerManager().ClearTimer(RollingAnimTimerHandle);
-	isRollingAnim = false;						//구르기 애니메이션끝
-}
-
-void AActionPlayer1::Move()
-{
-	//구르고있거나 공격중이면 이동 불가능
-	if (isRollingAnim || isAttacking || isSkillAttacking || isUltimateAttacking) return;
-
-	direction = FTransform(GetControlRotation()).TransformVector(direction);
-	AddMovementInput(direction);
-	direction = FVector::ZeroVector;
-}
-
-void AActionPlayer1::InputRun()
-{
-	auto movement = GetCharacterMovement();
-	//달리기 모드상태일 때
-	if (movement->MaxWalkSpeed > walkSpeed)
-	{
-		movement->MaxWalkSpeed = walkSpeed;
-	}
-	else
-	{
-		movement->MaxWalkSpeed = runSpeed;
-	}
-}
-
 void AActionPlayer1::LMB_Click()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("LMB_Click!"));
 	if (!isAttacking && !isDashAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
 	{
 		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
-		if (movement->MaxWalkSpeed == runSpeed)
+		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+
+		if (movement->MaxWalkSpeed == moveVar->runSpeed)
 			DashAttack();
 		else										//아니면 일반 공격
 			NormalAttack();
@@ -304,8 +208,9 @@ void AActionPlayer1::LMB_Click()
 
 void AActionPlayer1::DashAttack()
 {
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
-	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
@@ -330,12 +235,11 @@ void AActionPlayer1::DashAttackDelay()
 
 void AActionPlayer1::NormalAttack()
 {
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있으면 스킬, 궁극기 사용중이면 공격X
-	if (isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
+	if (moveVar->isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	//UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();		//bp_player자체로 애니메이션 받는법
-	//UE_LOG(LogTemp, Warning, TEXT("NormalAttack!"));
 	if (!anim || !anim->NormalAttackMontage) return;
 	const char* comboList[] = { "Attack1_Start", "Attack2_Start","Attack3_Start" };
 
@@ -370,7 +274,9 @@ void AActionPlayer1::EndAttacking()
 	if (isSkill2Attacking)		//스킬2 활성화중이었다면
 	{
 		auto movement = GetCharacterMovement();
-		movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
+		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+
+		movement->MaxWalkSpeed = moveVar->walkSpeed;			//다시 걸음속도로 변환
 		//충돌체 컴포넌트 비활성화
 		skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		//이펙트 컴포넌트 안보이게
@@ -404,8 +310,10 @@ void AActionPlayer1::AttackDamageEnd()
 
 void AActionPlayer1::InputSkill1()
 {
-	//구르기/대쉬공격/스킬공격중이면 공격X
-	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking)
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1)
 		return;			
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
@@ -413,6 +321,8 @@ void AActionPlayer1::InputSkill1()
 
 	anim->PlaySkill1Montage();
 	isSkillAttacking = true;
+	GetWorldTimerManager().SetTimer(Skill1CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill1, 1.0f, true);
+	isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
 }
 
 void AActionPlayer1::CreateSkill1Effect()
@@ -421,9 +331,24 @@ void AActionPlayer1::CreateSkill1Effect()
 	GetWorld()->SpawnActor<APlayer1_Skill1>(skill1Factory, skillPosition);
 }
 
+void AActionPlayer1::CoolDownSkill1()
+{
+	--skill1CoolTime;
+
+	if (skill1CoolTime <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(Skill1CoolTimerHandle);
+		isCoolTimeSkill1 = false;					//스킬1 사용가능
+		skill1CoolTime = 4;							//쿨타임 초기화
+	}
+}
+
 void AActionPlayer1::InputSkill2()
 {
-	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking)
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2)
 		return;
 
 	if(isAttacking)							//공격중에 스킬2를 썼으면
@@ -434,8 +359,11 @@ void AActionPlayer1::InputSkill2()
 
 	anim->PlaySkill2Montage();
 	isSkill2Attacking = true;
+	GetWorldTimerManager().SetTimer(Skill2CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill2, 1.0f, true);
+	isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
+
 	auto movement = GetCharacterMovement();
-	movement->MaxWalkSpeed = runSpeed;
+	movement->MaxWalkSpeed = moveVar->runSpeed;
 	//충격체 컴포넌트 활성화
 	skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	skill2EffectComp->SetVisibility(true);
@@ -448,15 +376,33 @@ void AActionPlayer1::Skill2DamageDelay()
 	UE_LOG(LogTemp, Warning, TEXT("Delay"));
 }
 
+void AActionPlayer1::CoolDownSkill2()
+{
+	--skill2CoolTime;
+
+	if (skill2CoolTime <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(Skill2CoolTimerHandle);
+		isCoolTimeSkill2 = false;						//스킬2 사용가능
+		skill2CoolTime = 10;							//쿨타임 초기화
+	}
+}
+
 void AActionPlayer1::InputSkill3()
 {
-	if (isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3)
+		return;			
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill3Montage) return;
 
 	anim->PlaySkill3Montage();
 	isSkillAttacking = true;
+	GetWorldTimerManager().SetTimer(Skill3CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill3, 1.0f, true);
+	isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
 }
 
 void AActionPlayer1::CreateSkill3Effect()
@@ -466,9 +412,25 @@ void AActionPlayer1::CreateSkill3Effect()
 	GetWorld()->SpawnActor<APlayer1_Skill3>(skill3Factory, skillPosition);
 }
 
+void AActionPlayer1::CoolDownSkill3()
+{
+	--skill3CoolTime;
+
+	if (skill3CoolTime <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(Skill3CoolTimerHandle);
+		isCoolTimeSkill3 = false;					//스킬3 사용가능
+		skill3CoolTime = 8;							//쿨타임 초기화
+	}
+}
+
 void AActionPlayer1::InputSkill4()
 {
-	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill4)
+		return;			
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4Montage) return;
@@ -478,6 +440,9 @@ void AActionPlayer1::InputSkill4()
 	isSkill4Releasing = true;
 	isSkillAttacking = true;
 	isSkill4Flying = true;
+	GetWorldTimerManager().SetTimer(Skill4CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill4, 1.0f, true);
+	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
+
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);		//애니메이션 z축 활성화
 	
 	GetWorldTimerManager().SetTimer(Skill4FeverOnHandle, this, &AActionPlayer1::Skill4FeverOnDelay, 2.0f, true);
@@ -574,9 +539,24 @@ void AActionPlayer1::Skill4CanDodge()
 	}
 }
 
+void AActionPlayer1::CoolDownSkill4()
+{
+	--skill4CoolTime;
+
+	if (skill4CoolTime <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(Skill4CoolTimerHandle);
+		isCoolTimeSkill4 = false;						//스킬4 사용가능
+		skill4CoolTime = 15;							//쿨타임 초기화
+	}
+}
+
 void AActionPlayer1::InputUltimate()
 {
-	if (isRollingAnim || isDashAttacking || isSkillAttacking) return;			//구르기/대쉬공격/스킬공격중이면 공격X
+	//구르기, 대쉬공격, 스킬공격, 쿨타임 중에 사용X
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate)
+		return;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->UltimateMontage) return;
@@ -584,10 +564,24 @@ void AActionPlayer1::InputUltimate()
 	anim->PlayUltimateMontage();
 
 	isUltimateAttacking = true;
+	GetWorldTimerManager().SetTimer(UltimateCoolTimerHandle, this, &AActionPlayer1::CoolDownUltimate, 1.0f, true);
+	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
 
 	//충격체 컴포넌트 활성화
 	ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ultimateEffectComp->SetVisibility(true);
+}
+
+void AActionPlayer1::CoolDownUltimate()
+{
+	--ultimateCoolTime;
+
+	if (ultimateCoolTime <= 0)
+	{
+		GetWorldTimerManager().ClearTimer(UltimateCoolTimerHandle);
+		isCoolTimeUltimate = false;						//궁극기 사용가능
+		ultimateCoolTime = 60;							//쿨타임 초기화
+	}
 }
 
 void AActionPlayer1::CreateGhostTrail_Dodge()
