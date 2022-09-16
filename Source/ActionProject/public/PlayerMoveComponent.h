@@ -52,6 +52,9 @@ public:
 	void CoolDownRolling();			//구르기 쿨타임 함수
 	void RollingDelay();			//구르기 애니메이션 딜레이 함수
 
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class AGhostTrail> ghostTrailDodgeFactory;	//구르기 잔상 액터생성팩토리
+
 	FTimerHandle RollingCoolTimerHandle;		//구르기 쿨 타이머 생성 및 관리
 	FTimerHandle RollingAnimTimerHandle;		//구르기 애니메이션 재생 타이머 생성 및 관리
 };

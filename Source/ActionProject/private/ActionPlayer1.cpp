@@ -4,6 +4,7 @@
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
 #include "PlayerMoveComponent.h"
+#include "PlayerAttackComponent.h"
 #include "Player1_Skill1.h"
 #include "Player1_Skill3.h"
 #include "Player1_Skill4.h"
@@ -109,6 +110,7 @@ AActionPlayer1::AActionPlayer1()
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
 
 	playerMove = CreateDefaultSubobject<UPlayerMoveComponent>(TEXT("PlayerMove"));
+	playerAttack = CreateDefaultSubobject<UPlayerAttackComponent>(TEXT("PlayerAttack"));
 
 	player1MaxHealth = 1000;
 	player1Health = player1MaxHealth;
@@ -131,8 +133,6 @@ AActionPlayer1::AActionPlayer1()
 	skill4CoolTime = 15;								//스킬4 쿨타임 = 15초
 	isCoolTimeUltimate = false;
 	ultimateCoolTime = 60;								//궁극기 쿨타임 = 60초
-	comboCnt = 0;										//처음 공격은 0번째콤보부터
-	canDamage = false;
 	skill2Delay = false;
 	skill4FeverTime = false;
 }
@@ -176,15 +176,9 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	playerMove->SetupInputBinding(PlayerInputComponent);
+	playerAttack->SetupInputBinding(PlayerInputComponent);
 	//공격 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AActionPlayer1::LMB_Click);
-	//스킬 입력 바인딩
-	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer1::InputSkill1);
-	PlayerInputComponent->BindAction(TEXT("Skill2"), IE_Pressed, this, &AActionPlayer1::InputSkill2);
-	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Pressed, this, &AActionPlayer1::InputSkill3);
-	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Pressed, this, &AActionPlayer1::InputSkill4);
-	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Released, this, &AActionPlayer1::OutputSkill4);
-	PlayerInputComponent->BindAction(TEXT("Ultimate"), IE_Pressed, this, &AActionPlayer1::InputUltimate);
 }
 
 void AActionPlayer1::LMB_Click()
@@ -194,11 +188,12 @@ void AActionPlayer1::LMB_Click()
 	{
 		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
 		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
 
 		if (movement->MaxWalkSpeed == moveVar->runSpeed)
-			DashAttack();
+			attackVar->DashAttack();
 		else										//아니면 일반 공격
-			NormalAttack();
+			attackVar->NormalAttack();
 	}
 	else if(isAttacking)							//공격중이면
 	{
@@ -206,64 +201,16 @@ void AActionPlayer1::LMB_Click()
 	}
 }
 
-void AActionPlayer1::DashAttack()
-{
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
-		return;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->DashAttackMontage) return;
-
-	anim->PlayDashAttackMontage();
-	anim->Montage_JumpToSection("Section_Start", anim->DashAttackMontage);
-	isAttacking = true;
-	isAttacking = true;
-	isDashAttacking = true;
-	//1초 뒤 대쉬어택 모션 끝
-	GetWorldTimerManager().SetTimer(DashAttackAnimTimerHandle, this, &AActionPlayer1::DashAttackDelay, 1.0f, true);
-	
-}
-
-void AActionPlayer1::DashAttackDelay()
-{
-	GetWorldTimerManager().ClearTimer(DashAttackAnimTimerHandle);		//대쉬어택 모션타이머 초기화
-	isAttacking = false;						//공격 끝
-	isDashAttacking = false;					//대쉬공격 끝
-}
-
-void AActionPlayer1::NormalAttack()
-{
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	//구르고 있으면 스킬, 궁극기 사용중이면 공격X
-	if (moveVar->isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->NormalAttackMontage) return;
-	const char* comboList[] = { "Attack1_Start", "Attack2_Start","Attack3_Start" };
-
-	if (!anim->Montage_IsPlaying(anim->NormalAttackMontage))	//공격 몽타주가 실행중이지 않을때
-	{
-		anim->PlayNormalAttackAnim();		//일반공격 애니메이션 on
-	}
-	else														//공격몽타주가 실행중일때
-	{
-		anim->PlayNormalAttackAnim();
-		anim->Montage_JumpToSection(FName(comboList[comboCnt]), anim->NormalAttackMontage);
-	}
-	isAttacking = true;
-}
-
 void AActionPlayer1::AttackInputChecking()
 {
 	if (isAttackButtonWhenAttack)
 	{
-		comboCnt++;
-		if (comboCnt >= 3)
-			comboCnt = 0;
+		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+		attackVar->comboCnt++;
+		if (attackVar->comboCnt >= 3)
+			attackVar->comboCnt = 0;
 		isAttackButtonWhenAttack = false;
-		NormalAttack();
+		attackVar->NormalAttack();
 	}
 }
 
@@ -289,299 +236,45 @@ void AActionPlayer1::EndAttacking()
 		ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		ultimateEffectComp->SetVisibility(false);
 	}
-	comboCnt = 0;
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->comboCnt = 0;
 }
 
 void AActionPlayer1::AttackDamageApplying()
 {
-	canDamage = true;
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->AttackDamageApplyingComp();
 }
 
 void AActionPlayer1::AttackDamageEnd()
 {
-	canDamage = false;
-
-	if (isUltimateAttacking)
-	{
-		FTransform skillPosition = skillArrow->GetComponentTransform();
-		GetWorld()->SpawnActor<APlayer1_UltimateBoom>(ultimateFactory, skillPosition);
-	}
-}
-
-void AActionPlayer1::InputSkill1()
-{
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1)
-		return;			
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill1Montage) return;
-
-	anim->PlaySkill1Montage();
-	isSkillAttacking = true;
-	GetWorldTimerManager().SetTimer(Skill1CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill1, 1.0f, true);
-	isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->AttackDamageEndComp();
 }
 
 void AActionPlayer1::CreateSkill1Effect()
 {
-	FTransform skillPosition = skillArrow->GetComponentTransform();
-	GetWorld()->SpawnActor<APlayer1_Skill1>(skill1Factory, skillPosition);
-}
-
-void AActionPlayer1::CoolDownSkill1()
-{
-	--skill1CoolTime;
-
-	if (skill1CoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(Skill1CoolTimerHandle);
-		isCoolTimeSkill1 = false;					//스킬1 사용가능
-		skill1CoolTime = 4;							//쿨타임 초기화
-	}
-}
-
-void AActionPlayer1::InputSkill2()
-{
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2)
-		return;
-
-	if(isAttacking)							//공격중에 스킬2를 썼으면
-		isAttacking = false;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill2Montage) return;
-
-	anim->PlaySkill2Montage();
-	isSkill2Attacking = true;
-	GetWorldTimerManager().SetTimer(Skill2CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill2, 1.0f, true);
-	isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
-
-	auto movement = GetCharacterMovement();
-	movement->MaxWalkSpeed = moveVar->runSpeed;
-	//충격체 컴포넌트 활성화
-	skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	skill2EffectComp->SetVisibility(true);
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->CreateSkill1EffectComp();
 }
 
 void AActionPlayer1::Skill2DamageDelay()
 {
-	GetWorldTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
+	GetWorld()->GetTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
 	skill2Delay = false;
 	UE_LOG(LogTemp, Warning, TEXT("Delay"));
 }
 
-void AActionPlayer1::CoolDownSkill2()
-{
-	--skill2CoolTime;
-
-	if (skill2CoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(Skill2CoolTimerHandle);
-		isCoolTimeSkill2 = false;						//스킬2 사용가능
-		skill2CoolTime = 10;							//쿨타임 초기화
-	}
-}
-
-void AActionPlayer1::InputSkill3()
-{
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3)
-		return;			
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill3Montage) return;
-
-	anim->PlaySkill3Montage();
-	isSkillAttacking = true;
-	GetWorldTimerManager().SetTimer(Skill3CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill3, 1.0f, true);
-	isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
-}
-
 void AActionPlayer1::CreateSkill3Effect()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Before Effect"));
-	FTransform skillPosition = skillArrow->GetComponentTransform();
-	GetWorld()->SpawnActor<APlayer1_Skill3>(skill3Factory, skillPosition);
-}
-
-void AActionPlayer1::CoolDownSkill3()
-{
-	--skill3CoolTime;
-
-	if (skill3CoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(Skill3CoolTimerHandle);
-		isCoolTimeSkill3 = false;					//스킬3 사용가능
-		skill3CoolTime = 8;							//쿨타임 초기화
-	}
-}
-
-void AActionPlayer1::InputSkill4()
-{
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill4)
-		return;			
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill4Montage) return;
-
-	anim->PlaySkill4Montage();
-	anim->Montage_JumpToSection("Section_Start", anim->Skill4Montage);
-	isSkill4Releasing = true;
-	isSkillAttacking = true;
-	isSkill4Flying = true;
-	GetWorldTimerManager().SetTimer(Skill4CoolTimerHandle, this, &AActionPlayer1::CoolDownSkill4, 1.0f, true);
-	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
-
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);		//애니메이션 z축 활성화
-	
-	GetWorldTimerManager().SetTimer(Skill4FeverOnHandle, this, &AActionPlayer1::Skill4FeverOnDelay, 2.0f, true);
-	GetWorldTimerManager().SetTimer(Skill4EndDelayHandle, this, &AActionPlayer1::Skill4EndDelay, 4.0f, true);
-}
-
-void AActionPlayer1::OutputSkill4()
-{
-	if (isSkill4Flying)
-	{
-		isSkill4Releasing = false;
-	}
-
-	if (!isSkill4Releasing) return;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill4Montage) return;
-
-	anim->PlaySkill4Montage();
-	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkill4Releasing = false;
-
-	GetWorldTimerManager().SetTimer
-	(Skill4EndMotionDelayHandle, this, &AActionPlayer1::Skill4EndMotionDelay, 1.0f, true);
-	
-	if (skill4FeverTime)
-	{	
-		FTransform skillPosition = skillArrow->GetComponentTransform();
-		GetWorld()->SpawnActor<APlayer1_Skill4>(skill4Factory, skillPosition);
-	}
-}
-
-void AActionPlayer1::Skill4FeverOnDelay()
-{
-	GetWorldTimerManager().ClearTimer(Skill4FeverOnHandle);		//스킬4 피버타임 시작
-
-	if (isSkillAttacking)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("FeverOn"));
-		skill4FeverTime = true;
-		GetWorldTimerManager().SetTimer(Skill4FeverOffHandle, this, &AActionPlayer1::Skill4FeverOffDelay, 2.0f, true);
-	}
-}
-
-void AActionPlayer1::Skill4FeverOffDelay()
-{
-	GetWorldTimerManager().ClearTimer(Skill4FeverOffHandle);		//스킬4 피버타임 종료
-	UE_LOG(LogTemp, Warning, TEXT("FeverOff"));
-	skill4FeverTime = false;
-}
-
-void AActionPlayer1::Skill4EndDelay()
-{
-	GetWorldTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
-
-	if (!isSkillAttacking) return;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->Skill4Montage) return;
-
-	anim->PlaySkill4Montage();
-	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkillAttacking = false;
-
-	GetWorldTimerManager().SetTimer
-	(Skill4EndMotionDelayHandle, this, &AActionPlayer1::Skill4EndMotionDelay, 1.0f, true);
-}
-
-void AActionPlayer1::Skill4EndMotionDelay()
-{
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	GetWorldTimerManager().ClearTimer(Skill4EndMotionDelayHandle);		//스킬4 공격모션 종료
-	anim->StopAllMontages(0.2f);
-	isSkillAttacking = false;
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->CreateSkill3EffectComp();
 }
 
 void AActionPlayer1::Skill4CanDodge()
 {
-	isSkill4Flying = false;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);		//애니메이션 z축 비활성화
-
-	FTransform skillPosition = skillArrow->GetComponentTransform();
-	GetWorld()->SpawnActor<APlayer1_Skill4Landing>(skill4LandingFactory, skillPosition);
-
-	if (!isSkill4Releasing)
-	{
-		auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-		GetWorldTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
-		anim->PlaySkill4Montage();
-		anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-
-		GetWorldTimerManager().SetTimer
-		(Skill4EndMotionDelayHandle, this, &AActionPlayer1::Skill4EndMotionDelay, 1.0f, true);
-	}
-}
-
-void AActionPlayer1::CoolDownSkill4()
-{
-	--skill4CoolTime;
-
-	if (skill4CoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(Skill4CoolTimerHandle);
-		isCoolTimeSkill4 = false;						//스킬4 사용가능
-		skill4CoolTime = 15;							//쿨타임 초기화
-	}
-}
-
-void AActionPlayer1::InputUltimate()
-{
-	//구르기, 대쉬공격, 스킬공격, 쿨타임 중에 사용X
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate)
-		return;
-
-	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
-	if (!anim || !anim->UltimateMontage) return;
-
-	anim->PlayUltimateMontage();
-
-	isUltimateAttacking = true;
-	GetWorldTimerManager().SetTimer(UltimateCoolTimerHandle, this, &AActionPlayer1::CoolDownUltimate, 1.0f, true);
-	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
-
-	//충격체 컴포넌트 활성화
-	ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	ultimateEffectComp->SetVisibility(true);
-}
-
-void AActionPlayer1::CoolDownUltimate()
-{
-	--ultimateCoolTime;
-
-	if (ultimateCoolTime <= 0)
-	{
-		GetWorldTimerManager().ClearTimer(UltimateCoolTimerHandle);
-		isCoolTimeUltimate = false;						//궁극기 사용가능
-		ultimateCoolTime = 60;							//쿨타임 초기화
-	}
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->Skill4CanDodgeComp();
 }
 
 void AActionPlayer1::CreateGhostTrail_Dodge()
@@ -591,7 +284,8 @@ void AActionPlayer1::CreateGhostTrail_Dodge()
 
 	FRotator rotator = GetActorRotation();
 	FVector  SpawnLocation = GetActorLocation();
-	auto GTrail_Dodge = Cast<AGhostTrail>(GetWorld()->SpawnActor<AGhostTrail>(ghostTrailDodgeFactory, SpawnLocation, rotator, SpawnParams));
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	auto GTrail_Dodge = Cast<AGhostTrail>(GetWorld()->SpawnActor<AGhostTrail>(moveVar->ghostTrailDodgeFactory, SpawnLocation, rotator, SpawnParams));
 	if (GTrail_Dodge)
 	{
 		GTrail_Dodge->Init(GetMesh());
@@ -605,7 +299,8 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 
 	FRotator rotator = GetActorRotation();
 	FVector  SpawnLocation = GetActorLocation();
-	auto GTrail_Skill = Cast<AGhostTrail_Skill>(GetWorld()->SpawnActor<AGhostTrail_Skill>(ghostTrailSkillFactory, SpawnLocation, rotator, SpawnParams));
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	auto GTrail_Skill = Cast<AGhostTrail_Skill>(GetWorld()->SpawnActor<AGhostTrail_Skill>(attackVar->ghostTrailSkillFactory, SpawnLocation, rotator, SpawnParams));
 	if (GTrail_Skill)
 	{
 		GTrail_Skill->Init(GetMesh());
@@ -615,7 +310,9 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!isAttacking) return;
-	if (OtherActor && (OtherActor != this) && OtherComp && canDamage)
+
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 	}
@@ -641,7 +338,8 @@ void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* Overlapped
 {
 	if (!isUltimateAttacking) return;
 
-	if (OtherActor && (OtherActor != this) && OtherComp && canDamage)
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 	}
