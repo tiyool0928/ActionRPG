@@ -1,0 +1,29 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "BTD_IsInAttackRange.h"
+#include "BossAIController.h"
+#include "EnemyBoss.h"
+#include "BehaviorTree/BlackboardComponent.h"
+
+
+UBTD_IsInAttackRange::UBTD_IsInAttackRange()
+{
+	NodeName = TEXT("CanAttack");
+}
+
+bool UBTD_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
+{
+	bool bResult = Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
+
+	auto controllingPawn = OwnerComp.GetAIOwner()->GetPawn();
+	if (nullptr == controllingPawn)
+		return false;
+
+	auto target = Cast<AEnemyBoss>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
+	if (target == nullptr)
+		return false;
+
+	bResult = (target->GetDistanceTo(controllingPawn) <= 200.0f);
+	return bResult;
+}

@@ -18,6 +18,25 @@ UPlayerAttackComponent::UPlayerAttackComponent()
 {
 	canDamage = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
+	isAttacking = false;
+	isSkillAttacking = false;
+	isSkill2Attacking = false;
+	isSkill4Flying = false;
+	isSkill4Releasing = false;
+	isUltimateAttacking = false;
+	isAttackButtonWhenAttack = false;
+	isCoolTimeSkill1 = false;
+	skill1CoolTime = 4;									//스킬1 쿨타임 = 4초
+	isCoolTimeSkill2 = false;
+	skill2CoolTime = 10;								//스킬2 쿨타임 = 10초
+	isCoolTimeSkill3 = false;
+	skill3CoolTime = 8;									//스킬3 쿨타임 = 8초
+	isCoolTimeSkill4 = false;
+	skill4CoolTime = 15;								//스킬4 쿨타임 = 15초
+	isCoolTimeUltimate = false;
+	ultimateCoolTime = 60;								//궁극기 쿨타임 = 60초
+	skill2Delay = false;
+	skill4FeverTime = false;
 }
 
 void UPlayerAttackComponent::BeginPlay()
@@ -45,7 +64,7 @@ void UPlayerAttackComponent::NormalAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있으면 스킬, 궁극기 사용중이면 공격X
-	if (moveVar->isRollingAnim || me->isSkillAttacking || me->isUltimateAttacking || me->isSkill4Flying) return;
+	if (moveVar->isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->NormalAttackMontage) return;
@@ -60,14 +79,14 @@ void UPlayerAttackComponent::NormalAttack()
 		anim->PlayNormalAttackAnim();
 		anim->Montage_JumpToSection(FName(comboList[comboCnt]), anim->NormalAttackMontage);
 	}
-	me->isAttacking = true;
+	isAttacking = true;
 }
 
 void UPlayerAttackComponent::DashAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking || me->isSkill2Attacking || me->isUltimateAttacking)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -75,8 +94,8 @@ void UPlayerAttackComponent::DashAttack()
 
 	anim->PlayDashAttackMontage();
 	anim->Montage_JumpToSection("Section_Start", anim->DashAttackMontage);
-	me->isAttacking = true;
-	me->isDashAttacking = true;
+	isAttacking = true;
+	isDashAttacking = true;
 	//1초 뒤 대쉬어택 모션 끝
 	GetWorld()->GetTimerManager().SetTimer(DashAttackAnimTimerHandle, this, &UPlayerAttackComponent::DashAttackDelay, 1.0f, true);
 
@@ -85,8 +104,8 @@ void UPlayerAttackComponent::DashAttack()
 void UPlayerAttackComponent::DashAttackDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(DashAttackAnimTimerHandle);		//대쉬어택 모션타이머 초기화
-	me->isAttacking = false;						//공격 끝
-	me->isDashAttacking = false;					//대쉬공격 끝
+	isAttacking = false;						//공격 끝
+	isDashAttacking = false;					//대쉬공격 끝
 }
 
 void UPlayerAttackComponent::AttackDamageApplyingComp()
@@ -98,7 +117,7 @@ void UPlayerAttackComponent::AttackDamageEndComp()
 {
 	canDamage = false;
 
-	if (me->isUltimateAttacking)
+	if (isUltimateAttacking)
 	{
 		FTransform skillPosition = me->skillArrow->GetComponentTransform();
 		GetWorld()->SpawnActor<APlayer1_UltimateBoom>(ultimateFactory, skillPosition);
@@ -109,17 +128,17 @@ void UPlayerAttackComponent::InputSkill1()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking
-		|| me->isSkill2Attacking || me->isUltimateAttacking || me->isCoolTimeSkill1)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill1Montage) return;
 
 	anim->PlaySkill1Montage();
-	me->isSkillAttacking = true;
+	isSkillAttacking = true;
 	GetWorld()->GetTimerManager().SetTimer(Skill1CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill1, 1.0f, true);
-	me->isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
+	isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
 }
 
 void UPlayerAttackComponent::CreateSkill1EffectComp()
@@ -130,13 +149,13 @@ void UPlayerAttackComponent::CreateSkill1EffectComp()
 
 void UPlayerAttackComponent::CoolDownSkill1()
 {
-	--(me->skill1CoolTime);
+	--skill1CoolTime;
 
-	if (me->skill1CoolTime <= 0)
+	if (skill1CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill1CoolTimerHandle);
-		me->isCoolTimeSkill1 = false;					//스킬1 사용가능
-		me->skill1CoolTime = 4;							//쿨타임 초기화
+		isCoolTimeSkill1 = false;					//스킬1 사용가능
+		skill1CoolTime = 4;							//쿨타임 초기화
 	}
 }
 
@@ -144,20 +163,20 @@ void UPlayerAttackComponent::InputSkill2()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking
-		|| me->isSkill2Attacking || me->isUltimateAttacking || me->isCoolTimeSkill2)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2)
 		return;
 
-	if (me->isAttacking)							//공격중에 스킬2를 썼으면
-		me->isAttacking = false;
+	if (isAttacking)							//공격중에 스킬2를 썼으면
+		isAttacking = false;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill2Montage) return;
 
 	anim->PlaySkill2Montage();
-	me->isSkill2Attacking = true;
+	isSkill2Attacking = true;
 	GetWorld()->GetTimerManager().SetTimer(Skill2CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill2, 1.0f, true);
-	me->isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
+	isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
 
 	auto movement = moveComp;
 	movement->MaxWalkSpeed = moveVar->runSpeed;
@@ -168,13 +187,13 @@ void UPlayerAttackComponent::InputSkill2()
 
 void UPlayerAttackComponent::CoolDownSkill2()
 {
-	--me->skill2CoolTime;
+	--skill2CoolTime;
 
-	if (me->skill2CoolTime <= 0)
+	if (skill2CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill2CoolTimerHandle);
-		me->isCoolTimeSkill2 = false;						//스킬2 사용가능
-		me->skill2CoolTime = 10;							//쿨타임 초기화
+		isCoolTimeSkill2 = false;						//스킬2 사용가능
+		skill2CoolTime = 10;							//쿨타임 초기화
 	}
 }
 
@@ -182,17 +201,17 @@ void UPlayerAttackComponent::InputSkill3()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking
-		|| me->isSkill2Attacking || me->isUltimateAttacking || me->isCoolTimeSkill3)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill3Montage) return;
 
 	anim->PlaySkill3Montage();
-	me->isSkillAttacking = true;
+	isSkillAttacking = true;
 	GetWorld()->GetTimerManager().SetTimer(Skill3CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill3, 1.0f, true);
-	me->isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
+	isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
 }
 
 void UPlayerAttackComponent::CreateSkill3EffectComp()
@@ -204,13 +223,13 @@ void UPlayerAttackComponent::CreateSkill3EffectComp()
 
 void UPlayerAttackComponent::CoolDownSkill3()
 {
-	--me->skill3CoolTime;
+	--skill3CoolTime;
 
-	if (me->skill3CoolTime <= 0)
+	if (skill3CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill3CoolTimerHandle);
-		me->isCoolTimeSkill3 = false;					//스킬3 사용가능
-		me->skill3CoolTime = 8;							//쿨타임 초기화
+		isCoolTimeSkill3 = false;					//스킬3 사용가능
+		skill3CoolTime = 8;							//쿨타임 초기화
 	}
 }
 
@@ -218,8 +237,8 @@ void UPlayerAttackComponent::InputSkill4()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking
-		|| me->isSkill2Attacking || me->isUltimateAttacking || me->isCoolTimeSkill4)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill4)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -227,11 +246,11 @@ void UPlayerAttackComponent::InputSkill4()
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Section_Start", anim->Skill4Montage);
-	me->isSkill4Releasing = true;
-	me->isSkillAttacking = true;
-	me->isSkill4Flying = true;
+	isSkill4Releasing = true;
+	isSkillAttacking = true;
+	isSkill4Flying = true;
 	GetWorld()->GetTimerManager().SetTimer(Skill4CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill4, 1.0f, true);
-	me->isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
+	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
 
 	moveComp->SetMovementMode(EMovementMode::MOVE_Flying);		//애니메이션 z축 활성화
 
@@ -241,24 +260,24 @@ void UPlayerAttackComponent::InputSkill4()
 
 void UPlayerAttackComponent::OutputSkill4()
 {
-	if (me->isSkill4Flying)
+	if (isSkill4Flying)
 	{
-		me->isSkill4Releasing = false;
+		isSkill4Releasing = false;
 	}
 
-	if (!me->isSkill4Releasing) return;
+	if (!isSkill4Releasing) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4Montage) return;
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	me->isSkill4Releasing = false;
+	isSkill4Releasing = false;
 
 	GetWorld()->GetTimerManager().SetTimer
 	(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
 
-	if (me->skill4FeverTime)
+	if (skill4FeverTime)
 	{
 		FTransform skillPosition = me->skillArrow->GetComponentTransform();
 		GetWorld()->SpawnActor<APlayer1_Skill4>(skill4Factory, skillPosition);
@@ -269,10 +288,10 @@ void UPlayerAttackComponent::Skill4FeverOnDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill4FeverOnHandle);		//스킬4 피버타임 시작
 
-	if (me->isSkillAttacking)
+	if (isSkillAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FeverOn"));
-		me->skill4FeverTime = true;
+		skill4FeverTime = true;
 		GetWorld()->GetTimerManager().SetTimer(Skill4FeverOffHandle, this, &UPlayerAttackComponent::Skill4FeverOffDelay, 2.0f, true);
 	}
 }
@@ -281,21 +300,21 @@ void UPlayerAttackComponent::Skill4FeverOffDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill4FeverOffHandle);		//스킬4 피버타임 종료
 	UE_LOG(LogTemp, Warning, TEXT("FeverOff"));
-	me->skill4FeverTime = false;
+	skill4FeverTime = false;
 }
 
 void UPlayerAttackComponent::Skill4EndDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
 
-	if (!me->isSkillAttacking) return;
+	if (!isSkillAttacking) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4Montage) return;
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	me->isSkillAttacking = false;
+	isSkillAttacking = false;
 
 	GetWorld()->GetTimerManager().SetTimer
 	(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
@@ -306,18 +325,18 @@ void UPlayerAttackComponent::Skill4EndMotionDelay()
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	GetWorld()->GetTimerManager().ClearTimer(Skill4EndMotionDelayHandle);		//스킬4 공격모션 종료
 	anim->StopAllMontages(0.2f);
-	me->isSkillAttacking = false;
+	isSkillAttacking = false;
 }
 
 void UPlayerAttackComponent::Skill4CanDodgeComp()
 {
-	me->isSkill4Flying = false;
+	isSkill4Flying = false;
 	moveComp->SetMovementMode(EMovementMode::MOVE_Walking);		//애니메이션 z축 비활성화
 
 	FTransform skillPosition = me->skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer1_Skill4Landing>(skill4LandingFactory, skillPosition);
 
-	if (!me->isSkill4Releasing)
+	if (!isSkill4Releasing)
 	{
 		auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 		GetWorld()->GetTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
@@ -331,13 +350,13 @@ void UPlayerAttackComponent::Skill4CanDodgeComp()
 
 void UPlayerAttackComponent::CoolDownSkill4()
 {
-	--me->skill4CoolTime;
+	--skill4CoolTime;
 
-	if (me->skill4CoolTime <= 0)
+	if (skill4CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill4CoolTimerHandle);
-		me->isCoolTimeSkill4 = false;						//스킬4 사용가능
-		me->skill4CoolTime = 15;							//쿨타임 초기화
+		isCoolTimeSkill4 = false;						//스킬4 사용가능
+		skill4CoolTime = 15;							//쿨타임 초기화
 	}
 }
 
@@ -345,7 +364,7 @@ void UPlayerAttackComponent::InputUltimate()
 {
 	//구르기, 대쉬공격, 스킬공격, 쿨타임 중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || me->isDashAttacking || me->isSkillAttacking || me->isCoolTimeUltimate)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -353,9 +372,9 @@ void UPlayerAttackComponent::InputUltimate()
 
 	anim->PlayUltimateMontage();
 
-	me->isUltimateAttacking = true;
+	isUltimateAttacking = true;
 	GetWorld()->GetTimerManager().SetTimer(UltimateCoolTimerHandle, this, &UPlayerAttackComponent::CoolDownUltimate, 1.0f, true);
-	me->isCoolTimeUltimate = true;		//궁극기 쿨타임 on
+	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
 
 	//충격체 컴포넌트 활성화
 	me->ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
@@ -364,12 +383,12 @@ void UPlayerAttackComponent::InputUltimate()
 
 void UPlayerAttackComponent::CoolDownUltimate()
 {
-	--me->ultimateCoolTime;
+	--ultimateCoolTime;
 
-	if (me->ultimateCoolTime <= 0)
+	if (ultimateCoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(UltimateCoolTimerHandle);
-		me->isCoolTimeUltimate = false;						//궁극기 사용가능
-		me->ultimateCoolTime = 60;							//쿨타임 초기화
+		isCoolTimeUltimate = false;						//궁극기 사용가능
+		ultimateCoolTime = 60;							//쿨타임 초기화
 	}
 }

@@ -2,6 +2,7 @@
 
 
 #include "PlayerMoveComponent.h"
+#include "PlayerAttackComponent.h"
 #include "Player1Anim.h"
 #include "Components/BoxComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -70,7 +71,8 @@ void UPlayerMoveComponent::InputVertical(float value)
 void UPlayerMoveComponent::Move()
 {
 	//구르고있거나 공격중이면 이동 불가능
-	if (isRollingAnim || me->isAttacking || me->isSkillAttacking || me->isUltimateAttacking) return;
+	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
+	if (isRollingAnim || attackVar->isAttacking || attackVar->isSkillAttacking || attackVar->isUltimateAttacking) return;
 
 	direction = FTransform(me->GetControlRotation()).TransformVector(direction);
 	me->AddMovementInput(direction);
@@ -95,25 +97,26 @@ void UPlayerMoveComponent::InputDodgeRoll()
 {
 	//구르기 애니메이션 재생
 	//구르기 쿨타임X, 무브먼트가 flyingX, 궁극기 모션중X라면
-	if (!isCoolTimeRolling && !me->isSkill4Flying && !me->isUltimateAttacking)
+	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
+	if (!isCoolTimeRolling && !attackVar->isSkill4Flying && !attackVar->isUltimateAttacking)
 	{
 		auto movement = moveComp;
-		if (me->isSkill2Attacking)		//스킬2 활성화중이었다면
+		if (attackVar->isSkill2Attacking)		//스킬2 활성화중이었다면
 		{
 			movement->MaxWalkSpeed = walkSpeed;			//다시 걸음속도로 변환
 			//충돌체 컴포넌트 비활성화
 			me->skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 			//이펙트 컴포넌트 안보이게
 			me->skill2EffectComp->SetVisibility(false);
-			me->isSkill2Attacking = false;
+			attackVar->isSkill2Attacking = false;
 		}
 		auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 		anim->PlayDodgeRollAnim();		//구르기 애니메이션 on
-		if (me->isSkillAttacking || me->isAttacking || me->skill4FeverTime)
+		if (attackVar->isSkillAttacking || attackVar->isAttacking || attackVar->skill4FeverTime)
 		{
-			me->isAttacking = false;			//공격 중 구르기 했을 경우 공격 bool타입 false로 변환
-			me->isSkillAttacking = false;
-			me->skill4FeverTime = false;
+			attackVar->isAttacking = false;			//공격 중 구르기 했을 경우 공격 bool타입 false로 변환
+			attackVar->isSkillAttacking = false;
+			attackVar->skill4FeverTime = false;
 		}
 
 		isRollingAnim = true;

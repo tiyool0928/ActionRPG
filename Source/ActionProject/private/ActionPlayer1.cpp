@@ -116,25 +116,6 @@ AActionPlayer1::AActionPlayer1()
 	player1Health = player1MaxHealth;
 
 	JumpMaxCount = 2;									//다중점프 설정
-	isAttacking = false;
-	isSkillAttacking = false;
-	isSkill2Attacking = false;
-	isSkill4Flying = false;
-	isSkill4Releasing = false;
-	isUltimateAttacking = false;
-	isAttackButtonWhenAttack = false;
-	isCoolTimeSkill1 = false;
-	skill1CoolTime = 4;									//스킬1 쿨타임 = 4초
-	isCoolTimeSkill2 = false;
-	skill2CoolTime = 10;								//스킬2 쿨타임 = 10초
-	isCoolTimeSkill3 = false;
-	skill3CoolTime = 8;									//스킬3 쿨타임 = 8초
-	isCoolTimeSkill4 = false;
-	skill4CoolTime = 15;								//스킬4 쿨타임 = 15초
-	isCoolTimeUltimate = false;
-	ultimateCoolTime = 60;								//궁극기 쿨타임 = 60초
-	skill2Delay = false;
-	skill4FeverTime = false;
 }
 
 // Called when the game starts or when spawned
@@ -158,13 +139,14 @@ void AActionPlayer1::Tick(float DeltaTime)
 
 	if (OverLapSkill2Actors.Num() > 0)				//스킬2를 쓰는중에 액터가 들어와있으면
 	{
-		if (!skill2Delay)							//딜레이가 비활성화 되어있다면
+		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+		if (!attackVar->skill2Delay)							//딜레이가 비활성화 되어있다면
 		{
 			for (int i = 0; i < OverLapSkill2Actors.Num(); i++)
 			{
 				UGameplayStatics::ApplyDamage(OverLapSkill2Actors[i], 100.0f, nullptr, this, nullptr);
 			}
-			skill2Delay = true;
+			attackVar->skill2Delay = true;
 			GetWorldTimerManager().SetTimer(Skill2DamageDelayHandle, this, &AActionPlayer1::Skill2DamageDelay, 0.5f, true);
 		}
 	}
@@ -184,41 +166,43 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AActionPlayer1::LMB_Click()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("LMB_Click!"));
-	if (!isAttacking && !isDashAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (!attackVar->isAttacking && !attackVar->isDashAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
 	{
 		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
 		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+		
 
 		if (movement->MaxWalkSpeed == moveVar->runSpeed)
 			attackVar->DashAttack();
 		else										//아니면 일반 공격
 			attackVar->NormalAttack();
 	}
-	else if(isAttacking)							//공격중이면
+	else if(attackVar->isAttacking)							//공격중이면
 	{
-		isAttackButtonWhenAttack = true;
+		attackVar->isAttackButtonWhenAttack = true;
 	}
 }
 
 void AActionPlayer1::AttackInputChecking()
 {
-	if (isAttackButtonWhenAttack)
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (attackVar->isAttackButtonWhenAttack)
 	{
-		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
 		attackVar->comboCnt++;
 		if (attackVar->comboCnt >= 3)
 			attackVar->comboCnt = 0;
-		isAttackButtonWhenAttack = false;
+		attackVar->isAttackButtonWhenAttack = false;
 		attackVar->NormalAttack();
 	}
 }
 
 void AActionPlayer1::EndAttacking()
 {
-	isAttacking = false;
-	isSkillAttacking = false;
-	if (isSkill2Attacking)		//스킬2 활성화중이었다면
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->isAttacking = false;
+	attackVar->isSkillAttacking = false;
+	if (attackVar->isSkill2Attacking)		//스킬2 활성화중이었다면
 	{
 		auto movement = GetCharacterMovement();
 		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
@@ -228,15 +212,14 @@ void AActionPlayer1::EndAttacking()
 		skill2BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		//이펙트 컴포넌트 안보이게
 		skill2EffectComp->SetVisibility(false);
-		isSkill2Attacking = false;
+		attackVar->isSkill2Attacking = false;
 	}
-	else if (isUltimateAttacking)	//궁극기 사용한 상태라면
+	else if (attackVar->isUltimateAttacking)	//궁극기 사용한 상태라면
 	{
-		isUltimateAttacking = false;
+		attackVar->isUltimateAttacking = false;
 		ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		ultimateEffectComp->SetVisibility(false);
 	}
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
 	attackVar->comboCnt = 0;
 }
 
@@ -261,7 +244,8 @@ void AActionPlayer1::CreateSkill1Effect()
 void AActionPlayer1::Skill2DamageDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
-	skill2Delay = false;
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->skill2Delay = false;
 	UE_LOG(LogTemp, Warning, TEXT("Delay"));
 }
 
@@ -309,9 +293,8 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!isAttacking) return;
-
 	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (!attackVar->isAttacking) return;
 	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
@@ -336,9 +319,9 @@ void AActionPlayer1::Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AAc
 
 void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!isUltimateAttacking) return;
-
 	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	if (!attackVar->isUltimateAttacking) return;
+
 	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);

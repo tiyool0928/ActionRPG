@@ -25,6 +25,26 @@ public:
 
 	bool canDamage;					//콤보공격 유효 타이밍
 	int comboCnt;					//몇번째 콤보인지 확인변수
+	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
+	bool isSkillAttacking;			//스킬공격중인가?		(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
+	bool isSkill2Attacking;			//스킬2공격중인가?	(일반공격중에 가능, 움직임o, 구르기 o, 대쉬어택 x)
+	bool isSkill4Flying;			//스킬4 공격모션중인가?	(구르기 x)
+	bool isSkill4Releasing;			//스킬4 버튼을 누르고있는가?
+	bool isUltimateAttacking;		//궁극기 모션중인가? (구르기 x)
+	bool isAttackButtonWhenAttack;	//공격중에 공격을 눌렀는가
+	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
+	bool skill2Delay;				//스킬2 데미지 틱 딜레이를 위한 변수
+	bool skill4FeverTime;			//스킬4 강화공격 타임이 켜졌는가?
+	bool isCoolTimeSkill1;			//스킬1 쿨타임중인가?
+	float skill1CoolTime;			//스킬1 쿨타임
+	bool isCoolTimeSkill2;			//스킬2 쿨타임중인가?
+	float skill2CoolTime;			//스킬2 쿨타임
+	bool isCoolTimeSkill3;			//스킬3 쿨타임중인가?
+	float skill3CoolTime;			//스킬3 쿨타임
+	bool isCoolTimeSkill4;			//스킬4 쿨타임중인가?
+	float skill4CoolTime;			//스킬4 쿨타임
+	bool isCoolTimeUltimate;		//궁극기 쿨타임중인가?
+	float ultimateCoolTime;			//궁극기 쿨타임
 
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수
