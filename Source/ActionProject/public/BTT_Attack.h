@@ -21,12 +21,12 @@ public:
 
 	FTimerHandle AttackDelayHandle;
 
-	void AttackDelay();
+	void EndAttack();
 
 protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSecond) override;
 
 private:
-	bool isAttacking = false;
+	bool isAttacking;
 	
 };

@@ -4,6 +4,7 @@
 #include "BTD_IsInAttackRange.h"
 #include "BossAIController.h"
 #include "EnemyBoss.h"
+#include "ActionPlayer1.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 
@@ -20,10 +21,10 @@ bool UBTD_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& Ow
 	if (nullptr == controllingPawn)
 		return false;
 
-	auto target = Cast<AEnemyBoss>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
+	auto target = Cast<AActionPlayer1>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
 	if (target == nullptr)
 		return false;
 
-	bResult = (target->GetDistanceTo(controllingPawn) <= 200.0f);
+	bResult = (target->GetDistanceTo(controllingPawn) <= 400.0f);
 	return bResult;
 }

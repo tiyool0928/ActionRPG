@@ -2,6 +2,7 @@
 
 
 #include "EnemyBoss.h"
+#include "EnemyBossAnim.h"
 #include "BossAIController.h"
 #include "GameFramework/Character.h"
 
@@ -47,8 +48,13 @@ void AEnemyBoss::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 void AEnemyBoss::Attack()
 {
-	PlayAnimMontage(AttackMontage);
+	if (Attack1Montage == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Didn't Played"));
+		return;
+	}
 
+	PlayAnimMontage(Attack1Montage);
 }
 
 

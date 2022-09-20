@@ -46,6 +46,7 @@ AActionPlayer1::AActionPlayer1()
 	springArmComp->SetRelativeLocation(FVector(0, 0, 90));
 	springArmComp->TargetArmLength = 400;
 	springArmComp->bUsePawnControlRotation = true;		//암컴포넌트 폰 제어
+	springArmComp->bDoCollisionTest = false;			//카메라 시야 가릴 때 자동 카메라 위치조정 비활성화
 	//camera 컴포넌트
 	tpsCamComp = CreateDefaultSubobject<UCameraComponent>(TEXT("TpsCamComp"));
 	tpsCamComp->SetupAttachment(springArmComp);
