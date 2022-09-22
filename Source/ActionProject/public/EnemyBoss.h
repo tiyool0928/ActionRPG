@@ -28,8 +28,25 @@ public:
 
 	AEnemyBoss* me = Cast<AEnemyBoss>(GetOwner());
 
+	UPROPERTY(EditAnywhere, Category = EnemySetting)
+		int maxHealth;
+	UPROPERTY(EditAnywhere, Category = EnemySetting)
+		int health;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		class UArrowComponent* attackArrow;
+
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class AEnemyBoss_Attack1> attack1Factory;				//스킬 1액터생성팩토리
+
 	UPROPERTY(EditDefaultsOnly, Category = BossAnim)
 		class UAnimMontage* Attack1Montage;
 
 	void Attack();
+
+	//노티파이 호출 함수
+	UFUNCTION(BlueprintCallable)	//Attack1이펙트 타이밍
+		void Attack1Effect();
+
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 };

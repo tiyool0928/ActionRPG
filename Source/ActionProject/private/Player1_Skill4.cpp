@@ -37,7 +37,7 @@ void APlayer1_Skill4::BeginPlay()
 	Super::BeginPlay();
 	
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &APlayer1_Skill4::OnOverlapBegin);
-	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer1_Skill4::Die, 0.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer1_Skill4::CollisionDie, 0.5f, false);
 }
 
 // Called every frame
@@ -47,9 +47,17 @@ void APlayer1_Skill4::Tick(float DeltaTime)
 
 }
 
+void APlayer1_Skill4::CollisionDie()
+{
+	GetWorld()->GetTimerManager().ClearTimer(deathTimerHandle);
+	boxComp->DestroyComponent();
+	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer1_Skill4::Die, 2.0f, false);
+}
+
 void APlayer1_Skill4::Die()
 {
-	boxComp->DestroyComponent();
+	GetWorld()->GetTimerManager().ClearTimer(deathTimerHandle);
+	Destroy();
 }
 
 void APlayer1_Skill4::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

@@ -4,6 +4,8 @@
 #include "EnemyBoss.h"
 #include "EnemyBossAnim.h"
 #include "BossAIController.h"
+#include "Components/ArrowComponent.h"
+#include "EnemyBoss_Attack1.h"
 #include "GameFramework/Character.h"
 
 // Sets default values
@@ -21,15 +23,23 @@ AEnemyBoss::AEnemyBoss()
 		GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -90), FRotator(0, -90, 0));
 	}
 
+	//공격arrow 컴포넌트
+	attackArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("attackArrow"));
+	attackArrow->SetupAttachment(RootComponent);
+	attackArrow->SetRelativeLocation(FVector(40, 0, 20));
+
 	AIControllerClass = ABossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	maxHealth = 200000;						//보스 체력
+	health = maxHealth;
 }
 
 // Called when the game starts or when spawned
 void AEnemyBoss::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UE_LOG(LogTemp, Warning, TEXT("BossHealth: %d"), health);
 }
 
 // Called every frame
@@ -55,6 +65,25 @@ void AEnemyBoss::Attack()
 	}
 
 	PlayAnimMontage(Attack1Montage);
+	
 }
 
+void AEnemyBoss::Attack1Effect()
+{
+	FTransform skillPosition = attackArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<AEnemyBoss_Attack1>(attack1Factory, skillPosition);
+}
 
+//피격 함수
+float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	const float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (ActualDamage > 0.f)
+	{
+		health -= Damage;
+		UE_LOG(LogTemp, Warning, TEXT("BossHealth: %d"), health);
+	}
+
+	return ActualDamage;
+}

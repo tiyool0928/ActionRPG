@@ -31,6 +31,7 @@ void APlayer1_Skill4Landing::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer1_Skill4Landing::Die, 2.0f, false);
 }
 
 // Called every frame
@@ -38,5 +39,11 @@ void APlayer1_Skill4Landing::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void APlayer1_Skill4Landing::Die()
+{
+	GetWorld()->GetTimerManager().ClearTimer(deathTimerHandle);
+	Destroy();
 }
 

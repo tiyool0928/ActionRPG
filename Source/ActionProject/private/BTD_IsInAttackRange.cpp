@@ -26,5 +26,7 @@ bool UBTD_IsInAttackRange::CalculateRawConditionValue(UBehaviorTreeComponent& Ow
 		return false;
 
 	bResult = (target->GetDistanceTo(controllingPawn) <= 400.0f);
+
+	UE_LOG(LogTemp, Warning, TEXT("%.2f"), target->GetDistanceTo(controllingPawn));
 	return bResult;
 }

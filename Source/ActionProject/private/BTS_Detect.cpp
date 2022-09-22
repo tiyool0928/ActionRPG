@@ -26,7 +26,7 @@ void UBTS_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory,
 
 	UWorld* World = controllingPawn->GetWorld();
 	FVector Center = controllingPawn->GetActorLocation();
-	float DetectRadius = 600.0f;
+	float DetectRadius = 2000.0f;
 
 	if (World == nullptr) return;
 
@@ -42,11 +42,11 @@ void UBTS_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory,
 		//UE_LOG(LogTemp, Warning, TEXT("after bResult"));
 		for (auto const& OverlapResult : OverlapResults)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("after for auto"));
+			//UE_LOG(LogTemp, Warning, TEXT("after for auto"));
 			AActionPlayer1* Player = Cast<AActionPlayer1>(OverlapResult.GetActor());
 			if (Player && Player->GetController()->IsPlayerController())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("after BossIsPlayerController"));
+				//UE_LOG(LogTemp, Warning, TEXT("after BossIsPlayerController"));
 				OwnerComp.GetBlackboardComponent()->SetValueAsObject(ABossAIController::Player1Key, Player);
 				DrawDebugSphere(World, Center, DetectRadius, 16, FColor::Green, false, 0.2f);
 				DrawDebugPoint(World, Player->GetActorLocation(), 10.0f, FColor::Blue, false, 0.2f);

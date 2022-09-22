@@ -95,4 +95,5 @@ public:
 	void CreateSkill1EffectComp();		//스킬1 이펙트 출력 함수
 	void CreateSkill3EffectComp();		//스킬3 이펙트 출력 함수
 	void Skill4CanDodgeComp();
+
 };

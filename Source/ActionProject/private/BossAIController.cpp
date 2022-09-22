@@ -11,6 +11,7 @@
 const FName ABossAIController::HomePosKey(TEXT("HomePos"));
 const FName ABossAIController::PatrolPosKey(TEXT("PatrolPos"));
 const FName ABossAIController::Player1Key(TEXT("Player1"));
+const FName ABossAIController::IsInAttackRangeKey(TEXT("IsInAttackRange"));
 
 ABossAIController::ABossAIController()
 {

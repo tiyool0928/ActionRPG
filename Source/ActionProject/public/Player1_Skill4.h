@@ -30,7 +30,8 @@ public:
 
 	FTimerHandle deathTimerHandle;					//스킬이 끝나는 시간
 
-	void Die();									//이펙트, 충돌체 소멸
+	void CollisionDie();									//충돌체 소멸
+	void Die();									//소멸
 
 	UFUNCTION()
 		void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,

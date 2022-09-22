@@ -131,6 +131,8 @@ void AActionPlayer1::BeginPlay()
 	skill2BoxComp->OnComponentEndOverlap.AddDynamic(this, &AActionPlayer1::Skill2OnOverlapEnd);
 	//궁극기 충돌체에 overlapbegin 할당
 	ultimateBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::UltimateSmashOnOverlapBegin);
+
+	UE_LOG(LogTemp, Warning, TEXT("Player1Health: %d"), player1Health);
 }
 
 // Called every frame
@@ -327,5 +329,19 @@ void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* Overlapped
 	{
 		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 	}
+}
+
+//피격 함수
+float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	const float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (ActualDamage > 0.f)
+	{
+		player1Health -= Damage;
+		UE_LOG(LogTemp, Warning, TEXT("Player1Health: %d"), player1Health);
+	}
+
+	return ActualDamage;
 }
 
