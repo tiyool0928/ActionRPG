@@ -70,9 +70,10 @@ void UPlayerMoveComponent::InputVertical(float value)
 
 void UPlayerMoveComponent::Move()
 {
-	//구르고있거나 공격중이면 이동 불가능
+	//구르고있거나 공격중,피격중이면 이동 불가능
 	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
-	if (isRollingAnim || attackVar->isAttacking || attackVar->isSkillAttacking || attackVar->isUltimateAttacking) return;
+	if (isRollingAnim || attackVar->isAttacking || attackVar->isSkillAttacking
+		|| attackVar->isUltimateAttacking || attackVar->isImpacting) return;
 
 	direction = FTransform(me->GetControlRotation()).TransformVector(direction);
 	me->AddMovementInput(direction);
@@ -96,9 +97,9 @@ void UPlayerMoveComponent::InputRun()
 void UPlayerMoveComponent::InputDodgeRoll()
 {
 	//구르기 애니메이션 재생
-	//구르기 쿨타임X, 무브먼트가 flyingX, 궁극기 모션중X라면
+	//구르기 쿨타임X, 무브먼트가 flyingX, 궁극기 모션중X, 피격중X 라면
 	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
-	if (!isCoolTimeRolling && !attackVar->isSkill4Flying && !attackVar->isUltimateAttacking)
+	if (!isCoolTimeRolling && !attackVar->isSkill4Flying && !attackVar->isUltimateAttacking && !attackVar->isImpacting)
 	{
 		auto movement = moveComp;
 		if (attackVar->isSkill2Attacking)		//스킬2 활성화중이었다면

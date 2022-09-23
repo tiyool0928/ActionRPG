@@ -95,6 +95,7 @@ AActionPlayer1::AActionPlayer1()
 	ultimateBoxComp->SetRelativeLocation(FVector(-160, -27, 180));
 	ultimateBoxComp->SetRelativeRotation(FRotator(40, 10, 0));
 	ultimateBoxComp->SetWorldScale3D(FVector(1, 1, 6));
+	ultimateBoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//궁극기 이펙트 컴포넌트
 	ultimateEffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ultimate Effect"));
 	ultimateEffectComp->SetupAttachment(ultimateBoxComp);
@@ -264,6 +265,12 @@ void AActionPlayer1::Skill4CanDodge()
 	attackVar->Skill4CanDodgeComp();
 }
 
+void AActionPlayer1::SmallImpactEnd()
+{
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	attackVar->isImpacting = false;
+}
+
 void AActionPlayer1::CreateGhostTrail_Dodge()
 {
 	FActorSpawnParameters SpawnParams;
@@ -327,7 +334,7 @@ void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* Overlapped
 
 	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
-		UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
+		UGameplayStatics::ApplyDamage(OtherActor, 1000.0f, nullptr, this, nullptr);
 	}
 }
 
@@ -341,6 +348,16 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 		player1Health -= Damage;
 		UE_LOG(LogTemp, Warning, TEXT("Player1Health: %d"), player1Health);
 	}
+
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+
+	if (attackVar->isSkillAttacking || attackVar->isSkill2Attacking || attackVar->isUltimateAttacking
+		|| attackVar->isDashAttacking || moveVar->isRollingAnim) return ActualDamage;
+
+	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
+	anim->PlaySmallImpactMontage();
+	attackVar->isImpacting = true;
 
 	return ActualDamage;
 }

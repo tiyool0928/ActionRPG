@@ -72,6 +72,8 @@ public:
 		void CreateSkill3Effect();
 	UFUNCTION(BlueprintCallable)	//스킬4 모션 이후 구르기 가능 확인 함수
 		void Skill4CanDodge();
+	UFUNCTION(BlueprintCallable)	//피격 모션 종료 함수
+		void SmallImpactEnd();
 	UFUNCTION(BlueprintCallable)	//구르기 잔상 생성 함수
 		void CreateGhostTrail_Dodge();
 	UFUNCTION(BlueprintCallable)	//스킬 잔상 생성 함수

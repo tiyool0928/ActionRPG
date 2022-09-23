@@ -25,6 +25,7 @@ public:
 
 	bool canDamage;					//콤보공격 유효 타이밍
 	int comboCnt;					//몇번째 콤보인지 확인변수
+	bool isImpacting;				//피격중인가?		(조작 x)
 	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	bool isSkillAttacking;			//스킬공격중인가?		(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
 	bool isSkill2Attacking;			//스킬2공격중인가?	(일반공격중에 가능, 움직임o, 구르기 o, 대쉬어택 x)

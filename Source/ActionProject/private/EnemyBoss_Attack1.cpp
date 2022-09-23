@@ -20,8 +20,8 @@ AEnemyBoss_Attack1::AEnemyBoss_Attack1()
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Collider"));
 	boxComp->SetupAttachment(rootComp);
 	boxComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	boxComp->SetRelativeLocationAndRotation(FVector(80.0f, -10.0f, 10.0f), FRotator(0, 0, -20.0f));
-	boxComp->SetWorldScale3D(FVector(1.75f, 1.0f, 4.5f));
+	boxComp->SetRelativeLocationAndRotation(FVector(80.0f, -10.0f, 10.0f), FRotator(0, 0, -10.0f));
+	boxComp->SetWorldScale3D(FVector(1.75f, 1.0f, 4.0f));
 	//외관 이펙트 컴포넌트
 	effectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp"));
 	effectComp->SetupAttachment(rootComp);
@@ -30,7 +30,7 @@ AEnemyBoss_Attack1::AEnemyBoss_Attack1()
 	if (TempEffect.Succeeded())
 	{
 		effectComp->SetTemplate(TempEffect.Object);
-		effectComp->SetRelativeRotation(FRotator(180.0f, 0, 110.0f));
+		effectComp->SetRelativeRotation(FRotator(180.0f, 0, 100.0f));
 		effectComp->SetWorldScale3D(FVector(1.0f, 1.5f, 1.0f));
 	}
 }

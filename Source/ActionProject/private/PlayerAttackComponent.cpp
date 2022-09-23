@@ -18,6 +18,7 @@ UPlayerAttackComponent::UPlayerAttackComponent()
 {
 	canDamage = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
+	isImpacting = false;
 	isAttacking = false;
 	isSkillAttacking = false;
 	isSkill2Attacking = false;
@@ -63,8 +64,9 @@ void UPlayerAttackComponent::SetupInputBinding(UInputComponent* PlayerInputCompo
 void UPlayerAttackComponent::NormalAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	//구르고 있으면 스킬, 궁극기 사용중이면 공격X
-	if (moveVar->isRollingAnim || isSkillAttacking || isUltimateAttacking || isSkill4Flying) return;
+	//구르고 있으면, 스킬, 궁극기 사용중, 피격중이면 공격X
+	if (moveVar->isRollingAnim || isSkillAttacking || isSkill4Flying 
+		|| isUltimateAttacking || isImpacting) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->NormalAttackMontage) return;
@@ -85,8 +87,9 @@ void UPlayerAttackComponent::NormalAttack()
 void UPlayerAttackComponent::DashAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	//구르고 있거나 이미 대쉬공격중 // 스킬공격중이면 공격X
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking || isUltimateAttacking)
+	//구르고 있거나 이미 대쉬공격중, 스킬공격중, 피격중이면 공격X
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking 
+		|| isUltimateAttacking || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -126,10 +129,10 @@ void UPlayerAttackComponent::AttackDamageEndComp()
 
 void UPlayerAttackComponent::InputSkill1()
 {
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1)
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1 || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -161,10 +164,10 @@ void UPlayerAttackComponent::CoolDownSkill1()
 
 void UPlayerAttackComponent::InputSkill2()
 {
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2)
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2 || isImpacting)
 		return;
 
 	if (isAttacking)							//공격중에 스킬2를 썼으면
@@ -199,10 +202,10 @@ void UPlayerAttackComponent::CoolDownSkill2()
 
 void UPlayerAttackComponent::InputSkill3()
 {
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3)
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3 || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -235,10 +238,10 @@ void UPlayerAttackComponent::CoolDownSkill3()
 
 void UPlayerAttackComponent::InputSkill4()
 {
-	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임 중에 사용X
+	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
-		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill4)
+		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill4 || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -362,9 +365,9 @@ void UPlayerAttackComponent::CoolDownSkill4()
 
 void UPlayerAttackComponent::InputUltimate()
 {
-	//구르기, 대쉬공격, 스킬공격, 쿨타임 중에 사용X
+	//구르기, 대쉬공격, 스킬공격, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());

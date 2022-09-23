@@ -16,10 +16,10 @@ class ACTIONPROJECT_API UPlayer1Anim : public UAnimInstance
 	
 public:
 	//플레이어 이동 속도
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayAnim)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float speed = 0;
 	//플레이어 좌우 이동 속도
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = PlayAnim)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		float direction = 0;
 	//재생할 구르기 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
@@ -30,6 +30,7 @@ public:
 	//재생할 대쉬공격 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* DashAttackMontage;
+	//재생할 스킬공격 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* Skill1Montage;
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
@@ -40,6 +41,9 @@ public:
 		class UAnimMontage* Skill4Montage;
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* UltimateMontage;
+	//재생할 피격 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+	class UAnimMontage* SmallImpactMontage;
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
 	//일반공격 애니메이션 재생
@@ -52,6 +56,8 @@ public:
 	void PlaySkill3Montage();
 	void PlaySkill4Montage();
 	void PlayUltimateMontage();
+	//피격 애니메이션 재생
+	void PlaySmallImpactMontage();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

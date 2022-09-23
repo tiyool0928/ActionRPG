@@ -69,6 +69,14 @@ void UPlayer1Anim::PlayUltimateMontage()
 	}
 }
 
+void UPlayer1Anim::PlaySmallImpactMontage()
+{
+	if (SmallImpactMontage != nullptr)
+	{
+		Montage_Play(SmallImpactMontage);
+	}
+}
+
 void UPlayer1Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
