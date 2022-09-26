@@ -31,5 +31,7 @@ public:
 	static const FName HomePosKey;								//본인 위치
 	static const FName PatrolPosKey;							//이동할 위치
 	static const FName Player1Key;								//Player 오브젝트 블랙보드 키 값
-	static const FName IsInAttackRangeKey;								//공격할 수 있는 지
+	static const FName IsInAttackRangeKey;						//공격할 수 있는 지
+	static const FName IsNarrowRotGapKey;						//target과 마주치고 있는 지
+	static const FName RandomAttackNumKey;						//어택 패턴 랜덤 변수
 };

@@ -27,12 +27,26 @@ EBTNodeResult::Type UBTT_TurnToPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 		return EBTNodeResult::Failed;
 	}
 
+	/*FVector LookVector = Target->GetActorLocation() - enemyBoss->GetActorLocation();
+	FRotator LookAtRotation = FRotator(0.f, LookVector.Rotation().Yaw, 0.f);
+	enemyBoss->SetActorRotation(LookAtRotation);*/
+
 	FVector LookVector = Target->GetActorLocation() - enemyBoss->GetActorLocation();
 	LookVector.Z = 0.0f;
 	FRotator TargetRot = FRotationMatrix::MakeFromX(LookVector).Rotator();
-	//enemyBoss->SetActorRotation(TargetRot);
-	enemyBoss->SetActorRotation(FMath::RInterpTo(enemyBoss->GetActorRotation(), TargetRot, GetWorld()->GetDeltaSeconds(), 2.0f));
-	//UE_LOG(LogTemp, Warning, TEXT("%.2f, %.2f"), LookVector.X, LookVector.Y);
+	float rotGap = abs(enemyBoss->GetActorRotation().Yaw - TargetRot.Yaw);
+
+	enemyBoss->SetActorRotation(FMath::RInterpTo(enemyBoss->GetActorRotation(), TargetRot, GetWorld()->GetDeltaSeconds(), 5.0f));
+	//UE_LOG(LogTemp, Warning, TEXT("rotGap: %.3f"), rotGap);
+
+	if (rotGap <= 20)
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ABossAIController::IsNarrowRotGapKey, true);
+	}
+	else
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ABossAIController::IsNarrowRotGapKey, false);
+	}
 
 	return EBTNodeResult::Succeeded;
 }

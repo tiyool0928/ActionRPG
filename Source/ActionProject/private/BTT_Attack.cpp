@@ -21,7 +21,7 @@ EBTNodeResult::Type UBTT_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, 
 		return EBTNodeResult::Failed;
 	}
 
-	enemyBoss->Attack();
+	enemyBoss->Attack1();
 	isAttacking = true;
 	GetWorld()->GetTimerManager().SetTimer(AttackDelayHandle, this, &UBTT_Attack::EndAttack, 1.5f, true);
 

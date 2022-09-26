@@ -56,7 +56,7 @@ void AEnemyBoss::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 }
 
-void AEnemyBoss::Attack()
+void AEnemyBoss::Attack1()
 {
 	if (Attack1Montage == nullptr)
 	{
@@ -68,10 +68,27 @@ void AEnemyBoss::Attack()
 	
 }
 
+void AEnemyBoss::Attack2()
+{
+	if (Attack2Montage == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Didn't Played"));
+		return;
+	}
+
+	PlayAnimMontage(Attack2Montage);
+}
+
 void AEnemyBoss::Attack1Effect()
 {
 	FTransform skillPosition = attackArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<AEnemyBoss_Attack1>(attack1Factory, skillPosition);
+}
+
+void AEnemyBoss::Attack2Effect()
+{
+	FTransform skillPosition = attackArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<AEnemyBoss_Attack1>(attack2Factory, skillPosition);
 }
 
 //피격 함수
