@@ -62,7 +62,7 @@ void AEnemyBoss_Attack1::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAc
 		auto otherActor = Cast<AEnemyBoss>(OtherActor);
 
 		if (OtherActor != otherActor)
-			UGameplayStatics::ApplyDamage(OtherActor, 10.0f, nullptr, this, nullptr);
+			UGameplayStatics::ApplyDamage(OtherActor, 50.0f, nullptr, this, nullptr);
 	}
 }
 

@@ -14,7 +14,7 @@ UBTS_RandomAttackPattern::UBTS_RandomAttackPattern()
 
 void UBTS_RandomAttackPattern::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	randNum = FMath::RandRange(0, 1);
+	randNum = FMath::RandRange(0, 2);
 
 	OwnerComp.GetBlackboardComponent()->SetValueAsInt(ABossAIController::RandomAttackNumKey, randNum);
 	UE_LOG(LogTemp, Warning, TEXT("%d"), OwnerComp.GetBlackboardComponent()->GetValueAsInt(ABossAIController::RandomAttackNumKey));
