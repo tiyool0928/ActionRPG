@@ -395,3 +395,23 @@ void UPlayerAttackComponent::CoolDownUltimate()
 		ultimateCoolTime = 60;							//쿨타임 초기화
 	}
 }
+
+void UPlayerAttackComponent::PlayerDie()
+{
+	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
+	if (!anim || !anim->DieMontage) return;
+	
+	anim->PlayDieMontage();
+	isImpacting = true;
+	GetWorld()->GetTimerManager().SetTimer(DieDelayTimerHandle, this, &UPlayerAttackComponent::GamePause, 2.0f, true);
+}
+
+void UPlayerAttackComponent::GamePause()
+{
+	GetWorld()->GetTimerManager().ClearTimer(DieDelayTimerHandle);
+	APlayerController* const MyPlayer = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
+	if (MyPlayer != NULL)
+	{
+		MyPlayer->SetPause(true);
+	}
+}

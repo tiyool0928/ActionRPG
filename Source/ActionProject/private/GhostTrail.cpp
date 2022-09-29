@@ -50,7 +50,7 @@ void AGhostTrail::Tick(float DeltaTime)
 		{
 			Materials[i]->SetScalarParameterValue("Opacity", FadeCountDown / FadeOutTime);
 		}
-		if (FadeCountDown < 0)
+		if (FadeCountDown < 0)			//정해진 시간이 지나면 액터 삭제
 		{
 			Destroy();
 		}
@@ -66,9 +66,9 @@ void AGhostTrail::Init(USkeletalMeshComponent* Pawn)
 	for (int i = 0; i < Mats.Num(); i++)
 	{
 		Materials.Add(UKismetMaterialLibrary::CreateDynamicMaterialInstance(GetWorld(), GhostMaterial));
-		PoseableMesh->SetMaterial(i, Materials[i]);
+		PoseableMesh->SetMaterial(i, Materials[i]);		//세팅한 머티리얼로 메시의 머티리얼 변경
 	}
 	FadeCountDown = FadeOutTime;
-	IsSpawned = true;
+	IsSpawned = true;				//spawn이 된 상태
 }
 

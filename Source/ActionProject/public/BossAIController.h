@@ -27,6 +27,7 @@ private:
 public:
 	ABossAIController();
 	virtual void OnPossess(APawn* InPawn) override;				//폰에 AIController를 바인딩
+	virtual void OnUnPossess() override;						//AIController 언바이딩
 
 	static const FName HomePosKey;								//본인 위치
 	static const FName PatrolPosKey;							//이동할 위치

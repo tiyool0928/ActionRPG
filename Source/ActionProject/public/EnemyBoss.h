@@ -33,6 +33,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = EnemySetting)
 		int health;
 
+	FTimerHandle DieDelayHandle;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* attackArrow;
 
@@ -57,9 +59,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = BossAnim)
 		class UAnimMontage* Attack3Montage;									//회전 후 주변 도넛 모양 광역딜
 
+	UPROPERTY(EditDefaultsOnly, Category = BossAnim)
+		class UAnimMontage* DieMontage;										//사망 모션
+
 	void Attack1();
 	void Attack2();
 	void Attack3();
+	void Die();
+	void DieDelay();
 
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//Attack1이펙트 타이밍

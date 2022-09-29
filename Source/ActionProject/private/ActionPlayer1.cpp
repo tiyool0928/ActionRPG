@@ -351,12 +351,21 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 
 	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
 	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+
+	if (player1Health <= 0)
+	{
+		attackVar->PlayerDie();
+		UE_LOG(LogTemp, Warning, TEXT("Player1 Die"));
+		return ActualDamage;
+	}
+
 	//스킬공격, 궁극기, 대쉬공격, 구르기 중에는 피격모션 X
 	if (attackVar->isSkillAttacking || attackVar->isSkill2Attacking || attackVar->isUltimateAttacking
 		|| attackVar->isDashAttacking || moveVar->isRollingAnim) return ActualDamage;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySmallImpactMontage();
+	
 	attackVar->isImpacting = true;
 	if (attackVar->isAttacking)					//일반공격중에 피격모션이 나왔을 경우
 	{
@@ -366,4 +375,3 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 
 	return ActualDamage;
 }
-

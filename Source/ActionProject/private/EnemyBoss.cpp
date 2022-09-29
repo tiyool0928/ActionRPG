@@ -35,10 +35,11 @@ AEnemyBoss::AEnemyBoss()
 	attack3SpinComp = CreateDefaultSubobject<UBoxComponent>(TEXT("attack3Spin"));
 	attack3SpinComp->SetupAttachment(RootComponent);
 
+	//AI 장착
 	AIControllerClass = ABossAIController::StaticClass();
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	maxHealth = 200000;						//보스 체력
+	maxHealth = 100000;						//보스 체력
 	health = maxHealth;
 }
 
@@ -101,6 +102,35 @@ void AEnemyBoss::Attack3()
 	PlayAnimMontage(Attack3Montage);
 }
 
+void AEnemyBoss::Die()
+{
+	if (DieMontage == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Doesn't has a DieMontage"));
+		return;
+	}
+
+	ABossAIController* AIController = this->GetController<ABossAIController>();
+
+	if (AIController != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UnPossess"));
+		AIController->OnUnPossess();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Didn't UnPossess"));
+	}
+	PlayAnimMontage(DieMontage);
+	GetWorld()->GetTimerManager().SetTimer(DieDelayHandle, this, &AEnemyBoss::DieDelay, 3.0f, true);
+}
+
+void AEnemyBoss::DieDelay()
+{
+	GetWorld()->GetTimerManager().ClearTimer(DieDelayHandle);
+	Destroy();
+}
+
 void AEnemyBoss::Attack1Effect()
 {
 	FTransform skillPosition = attackArrow->GetComponentTransform();
@@ -149,6 +179,11 @@ float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACon
 	{
 		health -= Damage;
 		UE_LOG(LogTemp, Warning, TEXT("BossHealth: %d"), health);
+	}
+
+	if (health <= 0)
+	{
+		Die();
 	}
 
 	return ActualDamage;

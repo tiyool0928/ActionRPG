@@ -27,7 +27,7 @@ void UBTS_IsInAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* No
 
 	bool bResult = (target->GetDistanceTo(controllingPawn) <= 400.0f);
 
-	UE_LOG(LogTemp, Warning, TEXT("%.2f"), target->GetDistanceTo(controllingPawn));
+	//UE_LOG(LogTemp, Warning, TEXT("%.2f"), target->GetDistanceTo(controllingPawn));
 	if (bResult)
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool(ABossAIController::IsInAttackRangeKey, true);

@@ -41,3 +41,8 @@ void ABossAIController::OnPossess(APawn* InPawn)
 		}
 	}
 }
+
+void ABossAIController::OnUnPossess()
+{
+	Super::OnUnPossess();
+}
