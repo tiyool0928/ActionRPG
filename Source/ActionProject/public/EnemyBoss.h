@@ -80,6 +80,9 @@ public:
 	UFUNCTION(BlueprintCallable)	//Attack3이펙트 타이밍
 		void Attack3Effect();
 
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUserWidget> HPBarWidget;
+
 	//콜리전 함수
 	UFUNCTION()
 		void Attack3SpinOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,

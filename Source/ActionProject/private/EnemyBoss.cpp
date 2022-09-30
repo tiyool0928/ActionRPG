@@ -6,8 +6,10 @@
 #include "BossAIController.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/WidgetComponent.h"
 #include "EnemyBoss_Attack1.h"
 #include "EnemyBoss_Attack3.h"
+#include "BossHPWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
@@ -52,13 +54,22 @@ void AEnemyBoss::BeginPlay()
 	//무기 충돌체에 overlapbegin 할당
 	attack3SpinComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	attack3SpinComp->OnComponentBeginOverlap.AddDynamic(this, &AEnemyBoss::Attack3SpinOnOverlapBegin);
+
+	if (IsValid(HPBarWidget))
+	{
+		UBossHPWidget* Widget = Cast<UBossHPWidget>(CreateWidget(GetWorld(), HPBarWidget));
+		if (Widget != nullptr)
+		{
+			Widget->AddToViewport();
+		}
+	}
 }
 
 // Called every frame
 void AEnemyBoss::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 }
 
 // Called to bind functionality to input

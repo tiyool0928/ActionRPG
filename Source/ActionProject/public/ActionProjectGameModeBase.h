@@ -16,5 +16,5 @@ class ACTIONPROJECT_API AActionProjectGameModeBase : public AGameModeBase
 
 public:
 	AActionProjectGameModeBase();
-	
+
 };

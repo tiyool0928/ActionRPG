@@ -3,6 +3,7 @@
 
 #include "ActionProjectGameModeBase.h"
 #include "ActionProject.h"
+#include <Blueprint/UserWidget.h>
 
 AActionProjectGameModeBase::AActionProjectGameModeBase()
 {
