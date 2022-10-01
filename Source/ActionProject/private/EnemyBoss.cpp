@@ -13,6 +13,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
+UBossHPWidget* Widget;
+
 // Sets default values
 AEnemyBoss::AEnemyBoss()
 {
@@ -49,7 +51,7 @@ AEnemyBoss::AEnemyBoss()
 void AEnemyBoss::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("BossHealth: %d"), health);
+	UE_LOG(LogTemp, Warning, TEXT("BossHealth: %f"), health);
 
 	//무기 충돌체에 overlapbegin 할당
 	attack3SpinComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -57,10 +59,12 @@ void AEnemyBoss::BeginPlay()
 
 	if (IsValid(HPBarWidget))
 	{
-		UBossHPWidget* Widget = Cast<UBossHPWidget>(CreateWidget(GetWorld(), HPBarWidget));
+		Widget = Cast<UBossHPWidget>(CreateWidget(GetWorld(), HPBarWidget));
 		if (Widget != nullptr)
 		{
+			Widget->SetOwnerBoss(this);
 			Widget->AddToViewport();
+			Widget->UpdateHealthBar();
 		}
 	}
 }
@@ -189,7 +193,16 @@ float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACon
 	if (ActualDamage > 0.f)
 	{
 		health -= Damage;
-		UE_LOG(LogTemp, Warning, TEXT("BossHealth: %d"), health);
+		UE_LOG(LogTemp, Warning, TEXT("BossHealth: %f"), health);
+
+		if (IsValid(HPBarWidget))
+		{
+			if (Widget != nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("after null check"));
+				Widget->UpdateHealthBar();
+			}
+		}
 	}
 
 	if (health <= 0)

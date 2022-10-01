@@ -29,9 +29,9 @@ public:
 	AEnemyBoss* me = Cast<AEnemyBoss>(GetOwner());
 
 	UPROPERTY(EditAnywhere, Category = EnemySetting)
-		int maxHealth;
+		float maxHealth;
 	UPROPERTY(EditAnywhere, Category = EnemySetting)
-		int health;
+		float health;
 
 	FTimerHandle DieDelayHandle;
 
