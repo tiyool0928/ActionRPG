@@ -26,7 +26,7 @@ AEnemyBoss_Attack3::AEnemyBoss_Attack3()
 	if (TempMesh.Succeeded())
 	{
 		meshComp->SetStaticMesh(TempMesh.Object);
-		meshComp->SetRelativeLocation(FVector(0, 0, -100.0f));
+		meshComp->SetRelativeLocation(FVector(-50, 0, -100.0f));
 		meshComp->SetWorldScale3D(FVector(6.0f, 6.0f, 3.0f));
 	}
 	//외관 이펙트 컴포넌트
@@ -37,7 +37,7 @@ AEnemyBoss_Attack3::AEnemyBoss_Attack3()
 	if (TempEffect.Succeeded())
 	{
 		effectComp->SetTemplate(TempEffect.Object);
-		effectComp->SetRelativeLocation(FVector(0, 0, -100.0f));
+		effectComp->SetRelativeLocation(FVector(-50, 0, -100.0f));
 		effectComp->SetWorldScale3D(FVector(2.0f, 2.0f, 1.0f));
 	}
 }

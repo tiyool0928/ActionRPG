@@ -1,0 +1,53 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "UI_ActionPlayer1.h"
+#include "ActionPlayer1.h"
+#include "PlayerAttackComponent.h"
+#include <Components/ProgressBar.h>
+#include <Components/TextBlock.h>
+
+void UUI_ActionPlayer1::UpdateHealthBar()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+
+	HealthBar->SetPercent(OwnerPlayer->player1Health / OwnerPlayer->player1MaxHealth);
+
+	FNumberFormattingOptions Opts;
+	Opts.SetMaximumFractionalDigits(0);
+	CurrentHealthLabel->SetText(FText::AsNumber(OwnerPlayer->player1Health, &Opts));
+	MaxHealthLabel->SetText(FText::AsNumber(OwnerPlayer->player1MaxHealth, &Opts));
+}
+
+void UUI_ActionPlayer1::UpdateSkill1CoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	Skill1CoolTimeBar->SetPercent(attackVar->skill1CoolTime / attackVar->maxSkill1CoolTime);
+}
+
+void UUI_ActionPlayer1::UpdateSkill2CoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	Skill2CoolTimeBar->SetPercent(attackVar->skill2CoolTime / attackVar->maxSkill2CoolTime);
+}
+
+void UUI_ActionPlayer1::UpdateSkill3CoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	Skill3CoolTimeBar->SetPercent(attackVar->skill3CoolTime / attackVar->maxSkill3CoolTime);
+}
+
+void UUI_ActionPlayer1::UpdateSkill4CoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	Skill4CoolTimeBar->SetPercent(attackVar->skill4CoolTime / attackVar->maxSkill4CoolTime);
+}

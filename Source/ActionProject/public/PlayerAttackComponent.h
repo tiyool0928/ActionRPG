@@ -36,16 +36,26 @@ public:
 	bool isDashAttacking;			//대쉬공격중인가?		(활성화 될 경우 isAttacking과 함께 활성화)
 	bool skill2Delay;				//스킬2 데미지 틱 딜레이를 위한 변수
 	bool skill4FeverTime;			//스킬4 강화공격 타임이 켜졌는가?
+
 	bool isCoolTimeSkill1;			//스킬1 쿨타임중인가?
-	float skill1CoolTime;			//스킬1 쿨타임
+	float skill1CoolTime;			//현재 스킬1 쿨타임
+	float maxSkill1CoolTime;		//스킬1 쿨타임
+
 	bool isCoolTimeSkill2;			//스킬2 쿨타임중인가?
-	float skill2CoolTime;			//스킬2 쿨타임
+	float skill2CoolTime;			//현재스킬2 쿨타임
+	float maxSkill2CoolTime;		//스킬2 쿨타임
+
 	bool isCoolTimeSkill3;			//스킬3 쿨타임중인가?
-	float skill3CoolTime;			//스킬3 쿨타임
+	float skill3CoolTime;			//현재스킬3 쿨타임
+	float maxSkill3CoolTime;		//스킬3 쿨타임
+
 	bool isCoolTimeSkill4;			//스킬4 쿨타임중인가?
-	float skill4CoolTime;			//스킬4 쿨타임
+	float skill4CoolTime;			//현재 스킬4 쿨타임
+	float maxSkill4CoolTime;		//스킬4 쿨타임
+
 	bool isCoolTimeUltimate;		//궁극기 쿨타임중인가?
 	float ultimateCoolTime;			//궁극기 쿨타임
+	float maxUltimateCoolTime;		//스킬1 쿨타임
 
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수

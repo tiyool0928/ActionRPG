@@ -47,9 +47,13 @@ public:
 		class UPlayerBaseComponent* playerMove;					//이동 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = Component)
 		class UPlayerBaseComponent* playerAttack;				//공격 컴포넌트
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUserWidget> HPBarWidget;
+
+	class UUI_ActionPlayer1* Widget;
 	
-	int player1MaxHealth;			//최대체력
-	int player1Health;				//현재체력
+	float player1MaxHealth;			//최대체력
+	float player1Health;				//현재체력
 	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 

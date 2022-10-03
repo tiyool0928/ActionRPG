@@ -10,6 +10,7 @@
 #include "Player1_Skill4.h"
 #include "Player1_Skill4Landing.h"
 #include "Player1_UltimateBoom.h"
+#include "UI_ActionPlayer1.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/BoxComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -26,16 +27,27 @@ UPlayerAttackComponent::UPlayerAttackComponent()
 	isSkill4Releasing = false;
 	isUltimateAttacking = false;
 	isAttackButtonWhenAttack = false;
+
 	isCoolTimeSkill1 = false;
-	skill1CoolTime = 4;									//스킬1 쿨타임 = 4초
+	maxSkill1CoolTime = 4;								//스킬1 쿨타임 = 4초
+	skill1CoolTime = 0;									//0초로 초기화	
+
 	isCoolTimeSkill2 = false;
-	skill2CoolTime = 10;								//스킬2 쿨타임 = 10초
+	maxSkill2CoolTime = 10;								//스킬2 쿨타임 = 10초
+	skill2CoolTime = 0;									//0초로 초기화
+
 	isCoolTimeSkill3 = false;
-	skill3CoolTime = 8;									//스킬3 쿨타임 = 8초
+	maxSkill3CoolTime = 8;								//스킬3 쿨타임 = 8초
+	skill3CoolTime = 0;									//0초로 초기화
+
 	isCoolTimeSkill4 = false;
-	skill4CoolTime = 15;								//스킬4 쿨타임 = 15초
+	maxSkill4CoolTime = 15;								//스킬4 쿨타임 = 15초
+	skill4CoolTime = 0;									//0초로 초기화
+
 	isCoolTimeUltimate = false;
-	ultimateCoolTime = 60;								//궁극기 쿨타임 = 60초
+	maxUltimateCoolTime = 60;							//궁극기 쿨타임 = 60초
+	ultimateCoolTime = 0;									//0초로 초기화
+
 	skill2Delay = false;
 	skill4FeverTime = false;
 }
@@ -140,6 +152,7 @@ void UPlayerAttackComponent::InputSkill1()
 
 	anim->PlaySkill1Montage();
 	isSkillAttacking = true;
+	skill1CoolTime = maxSkill1CoolTime;
 	GetWorld()->GetTimerManager().SetTimer(Skill1CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill1, 1.0f, true);
 	isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
 }
@@ -153,12 +166,18 @@ void UPlayerAttackComponent::CreateSkill1EffectComp()
 void UPlayerAttackComponent::CoolDownSkill1()
 {
 	--skill1CoolTime;
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill1CoolTime();
 
 	if (skill1CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill1CoolTimerHandle);
 		isCoolTimeSkill1 = false;					//스킬1 사용가능
-		skill1CoolTime = 4;							//쿨타임 초기화
 	}
 }
 
@@ -178,6 +197,7 @@ void UPlayerAttackComponent::InputSkill2()
 
 	anim->PlaySkill2Montage();
 	isSkill2Attacking = true;
+	skill2CoolTime = maxSkill2CoolTime;
 	GetWorld()->GetTimerManager().SetTimer(Skill2CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill2, 1.0f, true);
 	isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
 
@@ -192,11 +212,18 @@ void UPlayerAttackComponent::CoolDownSkill2()
 {
 	--skill2CoolTime;
 
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill2CoolTime();
+
 	if (skill2CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill2CoolTimerHandle);
 		isCoolTimeSkill2 = false;						//스킬2 사용가능
-		skill2CoolTime = 10;							//쿨타임 초기화
 	}
 }
 
@@ -213,6 +240,7 @@ void UPlayerAttackComponent::InputSkill3()
 
 	anim->PlaySkill3Montage();
 	isSkillAttacking = true;
+	skill3CoolTime = maxSkill3CoolTime;
 	GetWorld()->GetTimerManager().SetTimer(Skill3CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill3, 1.0f, true);
 	isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
 }
@@ -228,11 +256,18 @@ void UPlayerAttackComponent::CoolDownSkill3()
 {
 	--skill3CoolTime;
 
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill3CoolTime();
+
 	if (skill3CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill3CoolTimerHandle);
 		isCoolTimeSkill3 = false;					//스킬3 사용가능
-		skill3CoolTime = 8;							//쿨타임 초기화
 	}
 }
 
@@ -252,6 +287,7 @@ void UPlayerAttackComponent::InputSkill4()
 	isSkill4Releasing = true;
 	isSkillAttacking = true;
 	isSkill4Flying = true;
+	skill4CoolTime = maxSkill4CoolTime;
 	GetWorld()->GetTimerManager().SetTimer(Skill4CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill4, 1.0f, true);
 	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
 
@@ -355,11 +391,18 @@ void UPlayerAttackComponent::CoolDownSkill4()
 {
 	--skill4CoolTime;
 
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill4CoolTime();
+
 	if (skill4CoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(Skill4CoolTimerHandle);
 		isCoolTimeSkill4 = false;						//스킬4 사용가능
-		skill4CoolTime = 15;							//쿨타임 초기화
 	}
 }
 
@@ -376,6 +419,7 @@ void UPlayerAttackComponent::InputUltimate()
 	anim->PlayUltimateMontage();
 
 	isUltimateAttacking = true;
+	ultimateCoolTime = maxUltimateCoolTime;
 	GetWorld()->GetTimerManager().SetTimer(UltimateCoolTimerHandle, this, &UPlayerAttackComponent::CoolDownUltimate, 1.0f, true);
 	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
 
@@ -392,7 +436,6 @@ void UPlayerAttackComponent::CoolDownUltimate()
 	{
 		GetWorld()->GetTimerManager().ClearTimer(UltimateCoolTimerHandle);
 		isCoolTimeUltimate = false;						//궁극기 사용가능
-		ultimateCoolTime = 60;							//쿨타임 초기화
 	}
 }
 

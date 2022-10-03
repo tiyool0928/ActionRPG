@@ -18,6 +18,7 @@
 #include "Components/ArrowComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "UI_ActionPlayer1.h"
 //#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/PawnMovementComponent.h"
 #include <GameFramework/SpringArmComponent.h>
@@ -133,7 +134,18 @@ void AActionPlayer1::BeginPlay()
 	//궁극기 충돌체에 overlapbegin 할당
 	ultimateBoxComp->OnComponentBeginOverlap.AddDynamic(this, &AActionPlayer1::UltimateSmashOnOverlapBegin);
 
-	UE_LOG(LogTemp, Warning, TEXT("Player1Health: %d"), player1Health);
+	UE_LOG(LogTemp, Warning, TEXT("Player1Health: %f"), player1Health);
+
+	if (IsValid(HPBarWidget))
+	{
+		Widget = Cast<UUI_ActionPlayer1>(CreateWidget(GetWorld(), HPBarWidget));
+		if (Widget != nullptr)
+		{
+			Widget->SetOwnerPlayer(this);
+			Widget->AddToViewport();
+			Widget->UpdateHealthBar();
+		}
+	}
 }
 
 // Called every frame
@@ -346,7 +358,12 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 	if (ActualDamage > 0.f)
 	{
 		player1Health -= Damage;
-		UE_LOG(LogTemp, Warning, TEXT("Player1Health: %d"), player1Health);
+		if (player1Health < 0)
+		{
+			player1Health = 0;
+		}
+		Widget->UpdateHealthBar();
+		//UE_LOG(LogTemp, Warning, TEXT("Player1Health: %f"), player1Health);
 	}
 
 	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
@@ -354,6 +371,7 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 
 	if (player1Health <= 0)
 	{
+		SetActorEnableCollision(false);
 		attackVar->PlayerDie();
 		UE_LOG(LogTemp, Warning, TEXT("Player1 Die"));
 		return ActualDamage;

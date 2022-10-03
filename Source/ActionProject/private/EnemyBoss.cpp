@@ -6,7 +6,6 @@
 #include "BossAIController.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
-#include "Components/WidgetComponent.h"
 #include "EnemyBoss_Attack1.h"
 #include "EnemyBoss_Attack3.h"
 #include "BossHPWidget.h"
@@ -193,13 +192,13 @@ float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACon
 	if (ActualDamage > 0.f)
 	{
 		health -= Damage;
-		UE_LOG(LogTemp, Warning, TEXT("BossHealth: %f"), health);
+		//UE_LOG(LogTemp, Warning, TEXT("BossHealth: %f"), health);
 
 		if (IsValid(HPBarWidget))
 		{
 			if (Widget != nullptr)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("after null check"));
+				//UE_LOG(LogTemp, Warning, TEXT("after null check"));
 				Widget->UpdateHealthBar();
 			}
 		}
@@ -207,6 +206,7 @@ float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACon
 
 	if (health <= 0)
 	{
+		SetActorEnableCollision(false);
 		Die();
 	}
 
