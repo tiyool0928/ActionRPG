@@ -17,10 +17,13 @@
 
 UPlayerAttackComponent::UPlayerAttackComponent()
 {
+	PrimaryComponentTick.bCanEverTick = true;
+
 	canDamage = false;
 	comboCnt = 0;										//처음 공격은 0번째콤보부터
 	isImpacting = false;
 	isAttacking = false;
+	isDashAttacking = false;
 	isSkillAttacking = false;
 	isSkill2Attacking = false;
 	isSkill4Flying = false;
@@ -43,6 +46,8 @@ UPlayerAttackComponent::UPlayerAttackComponent()
 	isCoolTimeSkill4 = false;
 	maxSkill4CoolTime = 15;								//스킬4 쿨타임 = 15초
 	skill4CoolTime = 0;									//0초로 초기화
+	maxSkill4Charge = 4;								//스킬4 총 차징시간
+	curSkill4Charge = 0;								//0초로 초기화
 
 	isCoolTimeUltimate = false;
 	maxUltimateCoolTime = 60;							//궁극기 쿨타임 = 60초
@@ -60,6 +65,23 @@ void UPlayerAttackComponent::BeginPlay()
 void UPlayerAttackComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (isSkill4Releasing)
+	{
+		curSkill4Charge += DeltaTime * 1.25f;
+
+		UUI_ActionPlayer1* OwnerWidget = me->Widget;
+		if (OwnerWidget == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+			return;
+		}
+		OwnerWidget->UpdateChargeBar();
+	}
+	else
+	{
+		curSkill4Charge = 0;
+	}
 }
 
 void UPlayerAttackComponent::SetupInputBinding(UInputComponent* PlayerInputComponent)
@@ -288,6 +310,9 @@ void UPlayerAttackComponent::InputSkill4()
 	isSkillAttacking = true;
 	isSkill4Flying = true;
 	skill4CoolTime = maxSkill4CoolTime;
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	OwnerWidget->VisibilityChargeBar();			//차지바 보이도록 설정
+
 	GetWorld()->GetTimerManager().SetTimer(Skill4CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill4, 1.0f, true);
 	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
 
@@ -331,7 +356,7 @@ void UPlayerAttackComponent::Skill4FeverOnDelay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FeverOn"));
 		skill4FeverTime = true;
-		GetWorld()->GetTimerManager().SetTimer(Skill4FeverOffHandle, this, &UPlayerAttackComponent::Skill4FeverOffDelay, 2.0f, true);
+		GetWorld()->GetTimerManager().SetTimer(Skill4FeverOffHandle, this, &UPlayerAttackComponent::Skill4FeverOffDelay, 1.0f, true);
 	}
 }
 
@@ -364,6 +389,8 @@ void UPlayerAttackComponent::Skill4EndMotionDelay()
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	GetWorld()->GetTimerManager().ClearTimer(Skill4EndMotionDelayHandle);		//스킬4 공격모션 종료
 	anim->StopAllMontages(0.2f);
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	OwnerWidget->VisibilityChargeBar();			//차지바 보이도록 설정
 	isSkillAttacking = false;
 }
 

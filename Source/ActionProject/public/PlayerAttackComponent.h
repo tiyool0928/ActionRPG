@@ -18,8 +18,7 @@ public:
 	UPlayerAttackComponent();
 
 	virtual void BeginPlay() override;
-	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType,
-		FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	virtual void SetupInputBinding(class UInputComponent* PlayerInputComponent) override;
 
@@ -52,6 +51,8 @@ public:
 	bool isCoolTimeSkill4;			//스킬4 쿨타임중인가?
 	float skill4CoolTime;			//현재 스킬4 쿨타임
 	float maxSkill4CoolTime;		//스킬4 쿨타임
+	float maxSkill4Charge;			//스킬4 총 차징시간
+	float curSkill4Charge;			//스킬4 현재 차징시간
 
 	bool isCoolTimeUltimate;		//궁극기 쿨타임중인가?
 	float ultimateCoolTime;			//궁극기 쿨타임

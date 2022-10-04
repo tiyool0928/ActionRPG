@@ -6,6 +6,8 @@
 #include "PlayerAttackComponent.h"
 #include <Components/ProgressBar.h>
 #include <Components/TextBlock.h>
+#include <Components/Overlay.h>
+#include <Components/Image.h>
 
 void UUI_ActionPlayer1::UpdateHealthBar()
 {
@@ -50,4 +52,26 @@ void UUI_ActionPlayer1::UpdateSkill4CoolTime()
 		return;
 	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
 	Skill4CoolTimeBar->SetPercent(attackVar->skill4CoolTime / attackVar->maxSkill4CoolTime);
+}
+
+void UUI_ActionPlayer1::UpdateChargeBar()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	ChargeBar->SetPercent(attackVar->curSkill4Charge / attackVar->maxSkill4Charge);
+}
+
+void UUI_ActionPlayer1::VisibilityChargeBar()
+{
+	if (ChargeBarOverLay->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		ChargeBarOverLay->SetVisibility(ESlateVisibility::Visible);
+		PerfectZone->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		ChargeBarOverLay->SetVisibility(ESlateVisibility::Hidden);
+		PerfectZone->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
