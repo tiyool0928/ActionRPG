@@ -447,6 +447,8 @@ void UPlayerAttackComponent::InputUltimate()
 
 	isUltimateAttacking = true;
 	ultimateCoolTime = maxUltimateCoolTime;
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	OwnerWidget->UpdateUltCoolTime();
 	GetWorld()->GetTimerManager().SetTimer(UltimateCoolTimerHandle, this, &UPlayerAttackComponent::CoolDownUltimate, 1.0f, true);
 	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
 
@@ -458,6 +460,9 @@ void UPlayerAttackComponent::InputUltimate()
 void UPlayerAttackComponent::CoolDownUltimate()
 {
 	--ultimateCoolTime;
+
+	UUI_ActionPlayer1* OwnerWidget = me->Widget;
+	OwnerWidget->UpdateUltCoolTime();
 
 	if (ultimateCoolTime <= 0)
 	{

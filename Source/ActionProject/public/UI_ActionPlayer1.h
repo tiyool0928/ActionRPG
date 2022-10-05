@@ -33,11 +33,15 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 		class UProgressBar* Skill4CoolTimeBar;
 	UPROPERTY(meta = (BindWidget))
+		class UProgressBar* UltCoolTimeBar;
+	UPROPERTY(meta = (BindWidget))
 		class UProgressBar* ChargeBar;
 	UPROPERTY(meta = (BindWidget))
 		class UOverlay* ChargeBarOverLay;
 	UPROPERTY(meta = (BindWidget))
 		class UImage* PerfectZone;
+	UPROPERTY(meta = (BindWidget))
+		class UProgressBar* DodgeCoolTimeBar;
 
 public:
 	void UpdateHealthBar();
@@ -45,7 +49,10 @@ public:
 	void UpdateSkill2CoolTime();
 	void UpdateSkill3CoolTime();
 	void UpdateSkill4CoolTime();
+	void UpdateUltCoolTime();
 	void UpdateChargeBar();
 	void VisibilityChargeBar();
+	void UpdateDodgeCoolTime();
+	void VisibilityDodgeBar();
 	void SetOwnerPlayer(AActionPlayer1* InPlayer) { OwnerPlayer = InPlayer; }
 };

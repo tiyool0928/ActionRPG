@@ -4,6 +4,7 @@
 #include "UI_ActionPlayer1.h"
 #include "ActionPlayer1.h"
 #include "PlayerAttackComponent.h"
+#include "PlayerMoveComponent.h"
 #include <Components/ProgressBar.h>
 #include <Components/TextBlock.h>
 #include <Components/Overlay.h>
@@ -54,6 +55,14 @@ void UUI_ActionPlayer1::UpdateSkill4CoolTime()
 	Skill4CoolTimeBar->SetPercent(attackVar->skill4CoolTime / attackVar->maxSkill4CoolTime);
 }
 
+void UUI_ActionPlayer1::UpdateUltCoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UltCoolTimeBar->SetPercent(attackVar->ultimateCoolTime / attackVar->maxUltimateCoolTime);
+}
+
 void UUI_ActionPlayer1::UpdateChargeBar()
 {
 	if (!OwnerPlayer.IsValid())
@@ -73,5 +82,25 @@ void UUI_ActionPlayer1::VisibilityChargeBar()
 	{
 		ChargeBarOverLay->SetVisibility(ESlateVisibility::Hidden);
 		PerfectZone->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UUI_ActionPlayer1::UpdateDodgeCoolTime()
+{
+	if (!OwnerPlayer.IsValid())
+		return;
+	UPlayerMoveComponent* moveVar = OwnerPlayer->FindComponentByClass<UPlayerMoveComponent>();
+	DodgeCoolTimeBar->SetPercent(moveVar->rollingCoolTime / moveVar->maxRollingCoolTime);
+}
+
+void UUI_ActionPlayer1::VisibilityDodgeBar()
+{
+	if (DodgeCoolTimeBar->GetVisibility() == ESlateVisibility::Hidden)
+	{
+		DodgeCoolTimeBar->SetVisibility(ESlateVisibility::Visible);
+	}
+	else
+	{
+		DodgeCoolTimeBar->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

@@ -6,13 +6,15 @@
 #include "Player1Anim.h"
 #include "Components/BoxComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "UI_ActionPlayer1.h"
 
 UPlayerMoveComponent::UPlayerMoveComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
 	isRollingAnim = false;
-	rollingCoolTime = 5;								//구르기 쿨타임 = 5초
+	maxRollingCoolTime = 5;								//구르기 쿨타임 = 5초
+	rollingCoolTime = 0;								//0초로 초기화
 	isCoolTimeRolling = false;
 }
 
@@ -45,7 +47,7 @@ void UPlayerMoveComponent::SetupInputBinding(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(TEXT("DodgeRoll"), IE_Pressed, this, &UPlayerMoveComponent::InputDodgeRoll);
 	//달리기 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Pressed, this, &UPlayerMoveComponent::InputRun);
-	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &UPlayerMoveComponent::InputRun);
+	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &UPlayerMoveComponent::OutputRun);
 }
 
 void UPlayerMoveComponent::Turn(float value)
@@ -82,16 +84,20 @@ void UPlayerMoveComponent::Move()
 
 void UPlayerMoveComponent::InputRun()
 {
+	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
+	if (attackVar->isSkill2Attacking) return;			//스킬2사용중이면 적용 x
+
 	auto movement = moveComp;
-	//달리기 모드상태일 때
-	if (movement->MaxWalkSpeed > walkSpeed)
-	{
-		movement->MaxWalkSpeed = walkSpeed;
-	}
-	else
-	{
-		movement->MaxWalkSpeed = runSpeed;
-	}
+	movement->MaxWalkSpeed = runSpeed;
+}
+
+void UPlayerMoveComponent::OutputRun()
+{
+	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
+	if (attackVar->isSkill2Attacking) return;			//스킬2사용중이면 적용 x
+
+	auto movement = moveComp;
+	movement->MaxWalkSpeed = walkSpeed;
 }
 
 void UPlayerMoveComponent::InputDodgeRoll()
@@ -122,9 +128,13 @@ void UPlayerMoveComponent::InputDodgeRoll()
 
 		isRollingAnim = true;
 		isCoolTimeRolling = true;		//구르기 쿨타임 on
+		rollingCoolTime = maxRollingCoolTime;
 		//쿨타임 돌리기
 		GetWorld()->GetTimerManager().SetTimer(RollingCoolTimerHandle, this, &UPlayerMoveComponent::CoolDownRolling, 1.0f, true);
 		GetWorld()->GetTimerManager().SetTimer(RollingAnimTimerHandle, this, &UPlayerMoveComponent::RollingDelay, 0.5f, true);
+		UUI_ActionPlayer1* Widget = me->Widget;
+		Widget->VisibilityDodgeBar();
+		Widget->UpdateDodgeCoolTime();
 	}
 }
 
@@ -132,11 +142,14 @@ void UPlayerMoveComponent::CoolDownRolling()
 {
 	--rollingCoolTime;
 
+	UUI_ActionPlayer1* Widget = me->Widget;
+	Widget->UpdateDodgeCoolTime();
+
 	if (rollingCoolTime <= 0)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(RollingCoolTimerHandle);
 		isCoolTimeRolling = false;						//구르기 사용가능
-		rollingCoolTime = 5;
+		Widget->VisibilityDodgeBar();
 	}
 }
 

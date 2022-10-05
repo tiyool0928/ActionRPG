@@ -56,7 +56,7 @@ public:
 
 	bool isCoolTimeUltimate;		//궁극기 쿨타임중인가?
 	float ultimateCoolTime;			//궁극기 쿨타임
-	float maxUltimateCoolTime;		//스킬1 쿨타임
+	float maxUltimateCoolTime;		//궁극기 쿨타임
 
 	void NormalAttack();			//일반 공격 함수
 	void DashAttack();				//대쉬 공격 함수

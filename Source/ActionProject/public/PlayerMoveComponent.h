@@ -42,12 +42,14 @@ public:
 	void InputVertical(float value);
 
 	void Move();					//이동 처리
-	void InputRun();				//달리기
+	void InputRun();				//달리기 Press
+	void OutputRun();				//달리기 Release
 
 	void InputDodgeRoll();			//구르기 입력
 
 	bool isRollingAnim;				//구르기 애니메이션 재생중인가?
 	bool isCoolTimeRolling;			//구르기 쿨타임중인가?
+	float maxRollingCoolTime;		//구르기 쿨타임
 	float rollingCoolTime;			//구르기 쿨타임
 	void CoolDownRolling();			//구르기 쿨타임 함수
 	void RollingDelay();			//구르기 애니메이션 딜레이 함수
