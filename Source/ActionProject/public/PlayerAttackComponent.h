@@ -28,6 +28,7 @@ public:
 	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	bool isSkillAttacking;			//스킬공격중인가?		(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
 	bool isSkill2Attacking;			//스킬2공격중인가?	(일반공격중에 가능, 움직임o, 구르기 o, 대쉬어택 x)
+	bool isSkill4Attacking;			//스킬4공격중인가?	(일반공격중에 가능, 움직임x, 구르기 o, 대쉬어택 x)
 	bool isSkill4Flying;			//스킬4 공격모션중인가?	(구르기 x)
 	bool isSkill4Releasing;			//스킬4 버튼을 누르고있는가?
 	bool isUltimateAttacking;		//궁극기 모션중인가? (구르기 x)

@@ -74,7 +74,7 @@ void UPlayerMoveComponent::Move()
 {
 	//구르고있거나 공격중,피격중이면 이동 불가능
 	UPlayerAttackComponent* attackVar = GetOwner()->FindComponentByClass<UPlayerAttackComponent>();
-	if (isRollingAnim || attackVar->isAttacking || attackVar->isSkillAttacking
+	if (isRollingAnim || attackVar->isAttacking || attackVar->isSkillAttacking || attackVar->isSkill4Attacking
 		|| attackVar->isUltimateAttacking || attackVar->isImpacting) return;
 
 	direction = FTransform(me->GetControlRotation()).TransformVector(direction);
@@ -118,6 +118,7 @@ void UPlayerMoveComponent::InputDodgeRoll()
 			attackVar->isSkill2Attacking = false;
 		}
 		auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
+		UUI_ActionPlayer1* Widget = me->Widget;
 		anim->PlayDodgeRollAnim();		//구르기 애니메이션 on
 		if (attackVar->isSkillAttacking || attackVar->isAttacking || attackVar->skill4FeverTime)
 		{
@@ -126,13 +127,18 @@ void UPlayerMoveComponent::InputDodgeRoll()
 			attackVar->skill4FeverTime = false;
 		}
 
+		if (attackVar->isSkill4Attacking)
+		{
+			attackVar->isSkill4Releasing = false;
+			attackVar->isSkill4Attacking = false;
+			Widget->OffVisibilityChargeBar();
+		}
+
 		isRollingAnim = true;
 		isCoolTimeRolling = true;		//구르기 쿨타임 on
 		rollingCoolTime = maxRollingCoolTime;
 		//쿨타임 돌리기
 		GetWorld()->GetTimerManager().SetTimer(RollingCoolTimerHandle, this, &UPlayerMoveComponent::CoolDownRolling, 1.0f, true);
-		GetWorld()->GetTimerManager().SetTimer(RollingAnimTimerHandle, this, &UPlayerMoveComponent::RollingDelay, 0.5f, true);
-		UUI_ActionPlayer1* Widget = me->Widget;
 		Widget->VisibilityDodgeBar();
 		Widget->UpdateDodgeCoolTime();
 	}
@@ -153,8 +159,7 @@ void UPlayerMoveComponent::CoolDownRolling()
 	}
 }
 
-void UPlayerMoveComponent::RollingDelay()
+void UPlayerMoveComponent::DodgeEnd()
 {
-	GetWorld()->GetTimerManager().ClearTimer(RollingAnimTimerHandle);
-	isRollingAnim = false;						//구르기 애니메이션끝
+	isRollingAnim = false;
 }

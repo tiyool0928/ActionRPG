@@ -52,7 +52,7 @@ public:
 
 	class UUI_ActionPlayer1* Widget;
 	
-	float player1MaxHealth;			//최대체력
+	float player1MaxHealth;				//최대체력
 	float player1Health;				//현재체력
 	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
 	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
@@ -82,6 +82,8 @@ public:
 		void CreateGhostTrail_Dodge();
 	UFUNCTION(BlueprintCallable)	//스킬 잔상 생성 함수
 		void CreateGhostTrail_Skill();
+	UFUNCTION(BlueprintCallable)	//구르기 애니메이션 종료 함수
+		void Notify_DodgeEnd();
 
 	//콜리전 함수
 	UFUNCTION()

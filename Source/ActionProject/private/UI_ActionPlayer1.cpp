@@ -71,18 +71,17 @@ void UUI_ActionPlayer1::UpdateChargeBar()
 	ChargeBar->SetPercent(attackVar->curSkill4Charge / attackVar->maxSkill4Charge);
 }
 
-void UUI_ActionPlayer1::VisibilityChargeBar()
+void UUI_ActionPlayer1::OnVisibilityChargeBar()
 {
-	if (ChargeBarOverLay->GetVisibility() == ESlateVisibility::Hidden)
-	{
-		ChargeBarOverLay->SetVisibility(ESlateVisibility::Visible);
-		PerfectZone->SetVisibility(ESlateVisibility::Visible);
-	}
-	else
-	{
-		ChargeBarOverLay->SetVisibility(ESlateVisibility::Hidden);
-		PerfectZone->SetVisibility(ESlateVisibility::Hidden);
-	}
+	ChargeBarOverLay->SetVisibility(ESlateVisibility::Visible);
+	PerfectZone->SetVisibility(ESlateVisibility::Visible);
+		
+}
+
+void UUI_ActionPlayer1::OffVisibilityChargeBar()
+{
+	ChargeBarOverLay->SetVisibility(ESlateVisibility::Hidden);
+	PerfectZone->SetVisibility(ESlateVisibility::Hidden);
 }
 
 void UUI_ActionPlayer1::UpdateDodgeCoolTime()

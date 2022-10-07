@@ -12,7 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 
-UBossHPWidget* Widget;
+UBossHPWidget* BossWidget;
 
 // Sets default values
 AEnemyBoss::AEnemyBoss()
@@ -58,12 +58,12 @@ void AEnemyBoss::BeginPlay()
 
 	if (IsValid(HPBarWidget))
 	{
-		Widget = Cast<UBossHPWidget>(CreateWidget(GetWorld(), HPBarWidget));
-		if (Widget != nullptr)
+		BossWidget = Cast<UBossHPWidget>(CreateWidget(GetWorld(), HPBarWidget));
+		if (BossWidget != nullptr)
 		{
-			Widget->SetOwnerBoss(this);
-			Widget->AddToViewport();
-			Widget->UpdateHealthBar();
+			BossWidget->SetOwnerBoss(this);
+			BossWidget->AddToViewport();
+			BossWidget->UpdateHealthBar();
 		}
 	}
 }
@@ -196,10 +196,10 @@ float AEnemyBoss::TakeDamage(float Damage, FDamageEvent const& DamageEvent, ACon
 
 		if (IsValid(HPBarWidget))
 		{
-			if (Widget != nullptr)
+			if (BossWidget != nullptr)
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("after null check"));
-				Widget->UpdateHealthBar();
+				BossWidget->UpdateHealthBar();
 			}
 		}
 	}

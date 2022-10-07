@@ -117,8 +117,6 @@ AActionPlayer1::AActionPlayer1()
 
 	player1MaxHealth = 1000;
 	player1Health = player1MaxHealth;
-
-	JumpMaxCount = 2;									//다중점프 설정
 }
 
 // Called when the game starts or when spawned
@@ -311,6 +309,12 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 	{
 		GTrail_Skill->Init(GetMesh());
 	}
+}
+
+void AActionPlayer1::Notify_DodgeEnd()
+{
+	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	moveVar->DodgeEnd();
 }
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

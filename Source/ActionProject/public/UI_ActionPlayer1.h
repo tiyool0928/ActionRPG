@@ -51,7 +51,8 @@ public:
 	void UpdateSkill4CoolTime();
 	void UpdateUltCoolTime();
 	void UpdateChargeBar();
-	void VisibilityChargeBar();
+	void OnVisibilityChargeBar();
+	void OffVisibilityChargeBar();
 	void UpdateDodgeCoolTime();
 	void VisibilityDodgeBar();
 	void SetOwnerPlayer(AActionPlayer1* InPlayer) { OwnerPlayer = InPlayer; }

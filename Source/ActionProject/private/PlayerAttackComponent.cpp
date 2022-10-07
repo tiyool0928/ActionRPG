@@ -26,6 +26,7 @@ UPlayerAttackComponent::UPlayerAttackComponent()
 	isDashAttacking = false;
 	isSkillAttacking = false;
 	isSkill2Attacking = false;
+	isSkill4Attacking = false;
 	isSkill4Flying = false;
 	isSkill4Releasing = false;
 	isUltimateAttacking = false;
@@ -99,7 +100,7 @@ void UPlayerAttackComponent::NormalAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있으면, 스킬, 궁극기 사용중, 피격중이면 공격X
-	if (moveVar->isRollingAnim || isSkillAttacking || isSkill4Flying 
+	if (moveVar->isRollingAnim || isSkillAttacking || isSkill4Attacking 
 		|| isUltimateAttacking || isImpacting) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -122,8 +123,7 @@ void UPlayerAttackComponent::DashAttack()
 {
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
 	//구르고 있거나 이미 대쉬공격중, 스킬공격중, 피격중이면 공격X
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking 
-		|| isUltimateAttacking || isImpacting)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkill2Attacking || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
@@ -165,7 +165,7 @@ void UPlayerAttackComponent::InputSkill1()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking	|| isSkill4Attacking
 		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill1 || isImpacting)
 		return;
 
@@ -207,7 +207,7 @@ void UPlayerAttackComponent::InputSkill2()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill4Attacking
 		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill2 || isImpacting)
 		return;
 
@@ -253,7 +253,7 @@ void UPlayerAttackComponent::InputSkill3()
 {
 	//구르기, 대쉬공격, 스킬공격, 궁극기, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill4Attacking
 		|| isSkill2Attacking || isUltimateAttacking || isCoolTimeSkill3 || isImpacting)
 		return;
 
@@ -307,11 +307,11 @@ void UPlayerAttackComponent::InputSkill4()
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Section_Start", anim->Skill4Montage);
 	isSkill4Releasing = true;
-	isSkillAttacking = true;
+	isSkill4Attacking = true;
 	isSkill4Flying = true;
 	skill4CoolTime = maxSkill4CoolTime;
 	UUI_ActionPlayer1* OwnerWidget = me->Widget;
-	OwnerWidget->VisibilityChargeBar();			//차지바 보이도록 설정
+	OwnerWidget->OnVisibilityChargeBar();			//차지바 보이도록 설정
 
 	GetWorld()->GetTimerManager().SetTimer(Skill4CoolTimerHandle, this, &UPlayerAttackComponent::CoolDownSkill4, 1.0f, true);
 	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
@@ -324,7 +324,7 @@ void UPlayerAttackComponent::InputSkill4()
 
 void UPlayerAttackComponent::OutputSkill4()
 {
-	if (isSkill4Flying)
+	if (isSkill4Flying)			//점프 중에 안 멈추도록
 	{
 		isSkill4Releasing = false;
 	}
@@ -371,27 +371,30 @@ void UPlayerAttackComponent::Skill4EndDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill4EndDelayHandle);		//스킬4 애니메이션 종료
 
-	if (!isSkillAttacking) return;
+	if (!isSkill4Attacking) return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4Montage) return;
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkillAttacking = false;
+	isSkill4Attacking = false;
 
-	GetWorld()->GetTimerManager().SetTimer
-	(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
+	Skill4EndMotionDelay();
+	//GetWorld()->GetTimerManager().SetTimer
+	//(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
 }
 
 void UPlayerAttackComponent::Skill4EndMotionDelay()
 {
+	if (!isSkill4Attacking) return;
+
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
 	GetWorld()->GetTimerManager().ClearTimer(Skill4EndMotionDelayHandle);		//스킬4 공격모션 종료
-	anim->StopAllMontages(0.2f);
+	//anim->StopAllMontages(0.2f);
 	UUI_ActionPlayer1* OwnerWidget = me->Widget;
-	OwnerWidget->VisibilityChargeBar();			//차지바 보이도록 설정
-	isSkillAttacking = false;
+	OwnerWidget->OffVisibilityChargeBar();			//차지바 안 보이도록 설정
+	isSkill4Attacking = false;
 }
 
 void UPlayerAttackComponent::Skill4CanDodgeComp()
@@ -409,8 +412,9 @@ void UPlayerAttackComponent::Skill4CanDodgeComp()
 		anim->PlaySkill4Montage();
 		anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
 
-		GetWorld()->GetTimerManager().SetTimer
-		(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
+		Skill4EndMotionDelay();
+		/*GetWorld()->GetTimerManager().SetTimer
+		(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);*/
 	}
 }
 
@@ -437,7 +441,8 @@ void UPlayerAttackComponent::InputUltimate()
 {
 	//구르기, 대쉬공격, 스킬공격, 쿨타임, 피격중에 사용X
 	UPlayerMoveComponent* moveVar = GetOwner()->FindComponentByClass<UPlayerMoveComponent>();
-	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isCoolTimeUltimate || isImpacting)
+	if (moveVar->isRollingAnim || isDashAttacking || isSkillAttacking || isSkill2Attacking
+		|| isSkill4Attacking || isCoolTimeUltimate || isImpacting)
 		return;
 
 	auto anim = Cast<UPlayer1Anim>(me->GetMesh()->GetAnimInstance());
