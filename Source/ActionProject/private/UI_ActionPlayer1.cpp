@@ -3,8 +3,8 @@
 
 #include "UI_ActionPlayer1.h"
 #include "ActionPlayer1.h"
-#include "PlayerAttackComponent.h"
-#include "PlayerMoveComponent.h"
+#include "Player1AttackComponent.h"
+#include "Player1MoveComponent.h"
 #include <Components/ProgressBar.h>
 #include <Components/TextBlock.h>
 #include <Components/Overlay.h>
@@ -27,7 +27,7 @@ void UUI_ActionPlayer1::UpdateSkill1CoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	Skill1CoolTimeBar->SetPercent(attackVar->skill1CoolTime / attackVar->maxSkill1CoolTime);
 }
 
@@ -35,7 +35,7 @@ void UUI_ActionPlayer1::UpdateSkill2CoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	Skill2CoolTimeBar->SetPercent(attackVar->skill2CoolTime / attackVar->maxSkill2CoolTime);
 }
 
@@ -43,7 +43,7 @@ void UUI_ActionPlayer1::UpdateSkill3CoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	Skill3CoolTimeBar->SetPercent(attackVar->skill3CoolTime / attackVar->maxSkill3CoolTime);
 }
 
@@ -51,7 +51,7 @@ void UUI_ActionPlayer1::UpdateSkill4CoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	Skill4CoolTimeBar->SetPercent(attackVar->skill4CoolTime / attackVar->maxSkill4CoolTime);
 }
 
@@ -59,7 +59,7 @@ void UUI_ActionPlayer1::UpdateUltCoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	UltCoolTimeBar->SetPercent(attackVar->ultimateCoolTime / attackVar->maxUltimateCoolTime);
 }
 
@@ -67,7 +67,7 @@ void UUI_ActionPlayer1::UpdateChargeBar()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerAttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = OwnerPlayer->FindComponentByClass<UPlayer1AttackComponent>();
 	ChargeBar->SetPercent(attackVar->curSkill4Charge / attackVar->maxSkill4Charge);
 }
 
@@ -88,7 +88,7 @@ void UUI_ActionPlayer1::UpdateDodgeCoolTime()
 {
 	if (!OwnerPlayer.IsValid())
 		return;
-	UPlayerMoveComponent* moveVar = OwnerPlayer->FindComponentByClass<UPlayerMoveComponent>();
+	UPlayer1MoveComponent* moveVar = OwnerPlayer->FindComponentByClass<UPlayer1MoveComponent>();
 	DodgeCoolTimeBar->SetPercent(moveVar->rollingCoolTime / moveVar->maxRollingCoolTime);
 }
 

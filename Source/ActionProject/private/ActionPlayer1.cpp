@@ -3,8 +3,8 @@
 
 #include "ActionPlayer1.h"
 #include "Player1Anim.h"
-#include "PlayerMoveComponent.h"
-#include "PlayerAttackComponent.h"
+#include "Player1MoveComponent.h"
+#include "Player1AttackComponent.h"
 #include "Player1_Skill1.h"
 #include "Player1_Skill3.h"
 #include "Player1_Skill4.h"
@@ -112,8 +112,8 @@ AActionPlayer1::AActionPlayer1()
 
 	bUseControllerRotationYaw = true;					//클래스디폴트 Yaw 설정
 
-	playerMove = CreateDefaultSubobject<UPlayerMoveComponent>(TEXT("PlayerMove"));
-	playerAttack = CreateDefaultSubobject<UPlayerAttackComponent>(TEXT("PlayerAttack"));
+	playerMove = CreateDefaultSubobject<UPlayer1MoveComponent>(TEXT("Player1Move"));
+	playerAttack = CreateDefaultSubobject<UPlayer1AttackComponent>(TEXT("Player1Attack"));
 
 	player1MaxHealth = 1000;
 	player1Health = player1MaxHealth;
@@ -153,7 +153,7 @@ void AActionPlayer1::Tick(float DeltaTime)
 
 	if (OverLapSkill2Actors.Num() > 0)				//스킬2를 쓰는중에 액터가 들어와있으면
 	{
-		UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+		UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 		if (!attackVar->skill2Delay)							//딜레이가 비활성화 되어있다면
 		{
 			for (int i = 0; i < OverLapSkill2Actors.Num(); i++)
@@ -180,11 +180,11 @@ void AActionPlayer1::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AActionPlayer1::LMB_Click()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("LMB_Click!"));
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	if (!attackVar->isAttacking && !attackVar->isDashAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
 	{
 		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
-		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+		UPlayer1MoveComponent* moveVar = this->FindComponentByClass<UPlayer1MoveComponent>();
 		
 
 		if (movement->MaxWalkSpeed == moveVar->runSpeed)
@@ -200,7 +200,7 @@ void AActionPlayer1::LMB_Click()
 
 void AActionPlayer1::AttackInputChecking()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	if (attackVar->isAttackButtonWhenAttack)
 	{
 		attackVar->comboCnt++;
@@ -213,13 +213,13 @@ void AActionPlayer1::AttackInputChecking()
 
 void AActionPlayer1::EndAttacking()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->isAttacking = false;
 	attackVar->isSkillAttacking = false;
 	if (attackVar->isSkill2Attacking)		//스킬2 활성화중이었다면
 	{
 		auto movement = GetCharacterMovement();
-		UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+		UPlayer1MoveComponent* moveVar = this->FindComponentByClass<UPlayer1MoveComponent>();
 
 		movement->MaxWalkSpeed = moveVar->walkSpeed;			//다시 걸음속도로 변환
 		//충돌체 컴포넌트 비활성화
@@ -239,45 +239,45 @@ void AActionPlayer1::EndAttacking()
 
 void AActionPlayer1::AttackDamageApplying()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->AttackDamageApplyingComp();
 }
 
 void AActionPlayer1::AttackDamageEnd()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->AttackDamageEndComp();
 }
 
 void AActionPlayer1::CreateSkill1Effect()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->CreateSkill1EffectComp();
 }
 
 void AActionPlayer1::Skill2DamageDelay()
 {
 	GetWorld()->GetTimerManager().ClearTimer(Skill2DamageDelayHandle);		//스킬2 틱데미지 딜레이 초기화
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->skill2Delay = false;
 	UE_LOG(LogTemp, Warning, TEXT("Delay"));
 }
 
 void AActionPlayer1::CreateSkill3Effect()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->CreateSkill3EffectComp();
 }
 
 void AActionPlayer1::Skill4CanDodge()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->Skill4CanDodgeComp();
 }
 
 void AActionPlayer1::SmallImpactEnd()
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	attackVar->isImpacting = false;
 }
 
@@ -287,8 +287,8 @@ void AActionPlayer1::CreateGhostTrail_Dodge()
 	SpawnParams.Owner = this;
 
 	FRotator rotator = GetActorRotation();
-	FVector  SpawnLocation = GetActorLocation();
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	FVector SpawnLocation = GetActorLocation();
+	UPlayer1MoveComponent* moveVar = FindComponentByClass<UPlayer1MoveComponent>();
 	auto GTrail_Dodge = Cast<AGhostTrail>(GetWorld()->SpawnActor<AGhostTrail>(moveVar->ghostTrailDodgeFactory, SpawnLocation, rotator, SpawnParams));
 	if (GTrail_Dodge)
 	{
@@ -303,7 +303,7 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 
 	FRotator rotator = GetActorRotation();
 	FVector  SpawnLocation = GetActorLocation();
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	auto GTrail_Skill = Cast<AGhostTrail_Skill>(GetWorld()->SpawnActor<AGhostTrail_Skill>(attackVar->ghostTrailSkillFactory, SpawnLocation, rotator, SpawnParams));
 	if (GTrail_Skill)
 	{
@@ -313,13 +313,13 @@ void AActionPlayer1::CreateGhostTrail_Skill()
 
 void AActionPlayer1::Notify_DodgeEnd()
 {
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
+	UPlayer1MoveComponent* moveVar = FindComponentByClass<UPlayer1MoveComponent>();
 	moveVar->DodgeEnd();
 }
 
 void AActionPlayer1::WeaponOnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	if (!attackVar->isAttacking) return;
 	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
 	{
@@ -345,7 +345,7 @@ void AActionPlayer1::Skill2OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AAc
 
 void AActionPlayer1::UltimateSmashOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 	if (!attackVar->isUltimateAttacking) return;
 
 	if (OtherActor && (OtherActor != this) && OtherComp && attackVar->canDamage)
@@ -369,10 +369,8 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 		Widget->UpdateHealthBar();
 		//UE_LOG(LogTemp, Warning, TEXT("Player1Health: %f"), player1Health);
 	}
-
-	UPlayerMoveComponent* moveVar = this->FindComponentByClass<UPlayerMoveComponent>();
-	UPlayerAttackComponent* attackVar = this->FindComponentByClass<UPlayerAttackComponent>();
-
+	UPlayer1MoveComponent* moveVar = FindComponentByClass<UPlayer1MoveComponent>();
+	UPlayer1AttackComponent* attackVar = FindComponentByClass<UPlayer1AttackComponent>();
 	if (player1Health <= 0)
 	{
 		SetActorEnableCollision(false);
@@ -383,7 +381,7 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 
 	//스킬공격, 궁극기, 대쉬공격, 구르기 중에는 피격모션 X
 	if (attackVar->isSkillAttacking || attackVar->isSkill2Attacking || attackVar->isUltimateAttacking
-		|| attackVar->isDashAttacking || moveVar->isRollingAnim) return ActualDamage;
+		|| attackVar->isDashAttacking || attackVar->isSkill4Attacking || moveVar->isRollingAnim) return ActualDamage;
 
 	auto anim = Cast<UPlayer1Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySmallImpactMontage();

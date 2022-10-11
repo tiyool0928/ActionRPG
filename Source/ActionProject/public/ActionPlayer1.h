@@ -43,10 +43,10 @@ public:
 		class UParticleSystemComponent* ultimateEffectComp;		//궁극기 파티클 컴포넌트 등록
 	UPROPERTY(EditAnywhere)										
 		class UBoxComponent* ultimateBoxComp;					//궁극기 충돌체 컴포넌트
-	UPROPERTY(VisibleAnywhere, Category = Component)			
-		class UPlayerBaseComponent* playerMove;					//이동 컴포넌트
-	UPROPERTY(VisibleAnywhere, Category = Component)
-		class UPlayerBaseComponent* playerAttack;				//공격 컴포넌트
+	UPROPERTY(EditDefaultsOnly, Category = Component)
+		class UPlayer1BaseComponent* playerMove;				//이동 컴포넌트
+	UPROPERTY(EditDefaultsOnly, Category = Component)
+		class UPlayer1BaseComponent* playerAttack;				//공격 컴포넌트
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUserWidget> HPBarWidget;
 
@@ -54,10 +54,10 @@ public:
 	
 	float player1MaxHealth;				//최대체력
 	float player1Health;				//현재체력
-	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
-	void LMB_Click();				//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 
-	void Skill2DamageDelay();		//스킬2 틱 데미지 딜레이 함수
+	TArray<AActor*> OverLapSkill2Actors;	//스킬2와 겹치는 액터배열
+	void LMB_Click();						//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
+	void Skill2DamageDelay();				//스킬2 틱 데미지 딜레이 함수
 
 	FTimerHandle Skill2DamageDelayHandle;		//스킬2 틱 데미지 딜레이 관리
 
