@@ -25,6 +25,15 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(VisibleAnywhere, Category = HatMesh)
+		class UStaticMeshComponent* hatComp;				//모자메시 컴포넌트 등록
+	UPROPERTY(VisibleAnywhere, Category = WeaponMesh)
+		class UStaticMeshComponent* weaponComp;				//무기메시 컴포넌트 등록
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		class UArrowComponent* skillArrow;
+
+	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	
 	//좌우 입력 처리
 	void Turn(float value);
@@ -37,6 +46,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = PlayerSetting)
 		float runSpeed = 1200;
 
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_NormalAttack> normalAttackFactory;			//일반공격액터생성팩토리
+
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
 	bool isCoolTimeRolling = false;				//구르기 쿨타임중인가?
@@ -44,6 +56,8 @@ public:
 	float rollingCoolTime = 0;					//구르기 쿨타임
 	void CoolDownRolling();						//구르기 쿨타임 함수
 	void DodgeEnd();							//구르기 애니메이션 완료 함수
+	void LMB_Click();						//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
+	void NormalAttack();						//일반 공격 함수
 
 	//이동 방향
 	FVector direction;
@@ -67,4 +81,8 @@ public:
 		void CreateGhostTrail_Dodge();
 	UFUNCTION(BlueprintCallable)	//구르기 애니메이션 종료 함수
 		void Notify_DodgeEnd();
+	UFUNCTION(BlueprintCallable)	//공격이 끝났는지 확인 함수
+		void EndAttacking();
+	UFUNCTION(BlueprintCallable)	//일반공격 이펙트 출력 함수
+		void CreateNormalAttackEffect();
 };

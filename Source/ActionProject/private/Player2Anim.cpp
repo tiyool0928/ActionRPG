@@ -13,6 +13,14 @@ void UPlayer2Anim::PlayDodgeRollAnim()
 	}
 }
 
+void UPlayer2Anim::PlayNormalAttackAnim()
+{
+	if (NormalAttackMontage != nullptr)
+	{
+		Montage_Play(NormalAttackMontage);
+	}
+}
+
 void UPlayer2Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);

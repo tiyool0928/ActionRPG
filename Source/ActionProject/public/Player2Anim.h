@@ -25,9 +25,14 @@ public:
 	//재생할 구르기 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* DodgeRollMontage;
+	//재생할 기본공격 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* NormalAttackMontage;
 
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
+	//기본공격 애니메이션 재생
+	void PlayNormalAttackAnim();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
