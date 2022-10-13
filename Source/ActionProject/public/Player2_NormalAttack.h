@@ -31,7 +31,12 @@ public:
 		class UBoxComponent* boxComp;			//충돌체 컴포넌트
 	UPROPERTY(VisibleAnywhere, Category = EffectMesh)
 		class UParticleSystemComponent* effectComp;			//이펙트 컴포넌트
+	UPROPERTY(VisibleAnywhere, Category = Movement)
+		class UProjectileMovementComponent* movementComp;			//발사체 이동 컴포넌트
 
 	void Die();									//발사체 소멸
 
+	UFUNCTION()
+		void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+			class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

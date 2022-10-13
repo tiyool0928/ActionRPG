@@ -122,6 +122,9 @@ void AActionPlayer2::InputVertical(float value)
 
 void AActionPlayer2::Move()
 {
+	//공격중이면
+	if (isAttacking) return;
+
 	direction = FTransform(GetControlRotation()).TransformVector(direction);
 	AddMovementInput(direction);
 	direction = FVector::ZeroVector;
@@ -144,6 +147,9 @@ void AActionPlayer2::InputDodgeRoll()
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 
 	anim->PlayDodgeRollAnim();		//구르기 애니메이션 on
+	//공격중이었으면
+	if (isAttacking)
+		isAttacking = false;
 
 	isRollingAnim = true;
 	isCoolTimeRolling = true;		//구르기 쿨타임 on
