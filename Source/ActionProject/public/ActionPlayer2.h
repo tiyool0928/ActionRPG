@@ -33,7 +33,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* skillArrow;
 
-	bool isAttacking;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
+	bool isAttacking = false;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	
 	//좌우 입력 처리
 	void Turn(float value);
@@ -48,6 +48,8 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_NormalAttack> normalAttackFactory;			//일반공격액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_DashAttack> dashAttackFactory;			//대쉬공격액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -56,8 +58,9 @@ public:
 	float rollingCoolTime = 0;					//구르기 쿨타임
 	void CoolDownRolling();						//구르기 쿨타임 함수
 	void DodgeEnd();							//구르기 애니메이션 완료 함수
-	void LMB_Click();						//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
+	void LMB_Click();							//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();						//일반 공격 함수
+	void DashAttack();							//대쉬 공격 함수
 
 	//이동 방향
 	FVector direction;
@@ -85,4 +88,6 @@ public:
 		void EndAttacking();
 	UFUNCTION(BlueprintCallable)	//일반공격 이펙트 출력 함수
 		void CreateNormalAttackEffect();
+	UFUNCTION(BlueprintCallable)	//대쉬공격 이펙트 출력 함수
+		void CreateDashAttackEffect();
 };

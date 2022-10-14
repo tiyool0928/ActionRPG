@@ -5,6 +5,7 @@
 #include "Player2Anim.h"
 #include "GhostTrail.h"
 #include "Player2_NormalAttack.h"
+#include "Player2_DashAttack.h"
 #include "Components/ArrowComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
@@ -82,11 +83,11 @@ void AActionPlayer2::LMB_Click()
 	//UE_LOG(LogTemp, Warning, TEXT("LMB_Click!"));
 	if (!isAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
 	{
-		//auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
-		//if (movement->MaxWalkSpeed == moveVar->runSpeed)
-		//	DashAttack();
-		//else										//아니면 일반 공격
-		NormalAttack();
+		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
+		if (movement->MaxWalkSpeed == runSpeed)
+			DashAttack();
+		else										//아니면 일반 공격
+			NormalAttack();
 	}
 }
 
@@ -97,6 +98,17 @@ void AActionPlayer2::NormalAttack()
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayNormalAttackAnim();		//일반공격 애니메이션 on
+	isAttacking = true;
+}
+
+void AActionPlayer2::DashAttack()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->PlayDashAttackAnim();		//대쉬공격 애니메이션 on
+	anim->Montage_JumpToSection("Section_Start", anim->DashAttackMontage);
 	isAttacking = true;
 }
 
@@ -202,4 +214,10 @@ void AActionPlayer2::CreateNormalAttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_NormalAttack>(normalAttackFactory, skillPosition);
+}
+
+void AActionPlayer2::CreateDashAttackEffect()
+{
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer2_DashAttack>(dashAttackFactory, skillPosition);
 }

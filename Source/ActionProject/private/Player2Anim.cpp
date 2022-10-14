@@ -21,6 +21,14 @@ void UPlayer2Anim::PlayNormalAttackAnim()
 	}
 }
 
+void UPlayer2Anim::PlayDashAttackAnim()
+{
+	if (DashAttackMontage != nullptr)
+	{
+		Montage_Play(DashAttackMontage);
+	}
+}
+
 void UPlayer2Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
