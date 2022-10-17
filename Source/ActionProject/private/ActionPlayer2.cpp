@@ -73,9 +73,10 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Run"), IE_Released, this, &AActionPlayer2::OutputRun);
 	//구르기 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("DodgeRoll"), IE_Pressed, this, &AActionPlayer2::InputDodgeRoll);
-
 	//공격 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AActionPlayer2::LMB_Click);
+	//스킬1 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer2::Skill1Attack);
 }
 
 void AActionPlayer2::LMB_Click()
@@ -109,6 +110,16 @@ void AActionPlayer2::DashAttack()
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayDashAttackAnim();		//대쉬공격 애니메이션 on
 	anim->Montage_JumpToSection("Section_Start", anim->DashAttackMontage);
+	isAttacking = true;
+}
+
+void AActionPlayer2::Skill1Attack()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->PlaySkill1AttackAnim();		//스킬1공격 애니메이션 on
 	isAttacking = true;
 }
 

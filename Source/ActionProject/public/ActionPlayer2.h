@@ -61,6 +61,7 @@ public:
 	void LMB_Click();							//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
 	void NormalAttack();						//일반 공격 함수
 	void DashAttack();							//대쉬 공격 함수
+	void Skill1Attack();							//스킬1 공격 함수
 
 	//이동 방향
 	FVector direction;
