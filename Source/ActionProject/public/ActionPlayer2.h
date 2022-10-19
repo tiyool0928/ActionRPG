@@ -50,6 +50,8 @@ public:
 		TSubclassOf<class APlayer2_NormalAttack> normalAttackFactory;			//일반공격액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_DashAttack> dashAttackFactory;			//대쉬공격액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_Skill1> skill1AttackFactory;			//스킬1액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -91,4 +93,6 @@ public:
 		void CreateNormalAttackEffect();
 	UFUNCTION(BlueprintCallable)	//대쉬공격 이펙트 출력 함수
 		void CreateDashAttackEffect();
+	UFUNCTION(BlueprintCallable)	//대쉬공격 이펙트 출력 함수
+		void CreateSkill1AttackEffect();
 };

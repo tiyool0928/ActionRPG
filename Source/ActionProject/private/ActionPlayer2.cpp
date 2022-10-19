@@ -6,6 +6,7 @@
 #include "GhostTrail.h"
 #include "Player2_NormalAttack.h"
 #include "Player2_DashAttack.h"
+#include "Player2_Skill1.h"
 #include "Components/ArrowComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
@@ -231,4 +232,10 @@ void AActionPlayer2::CreateDashAttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_DashAttack>(dashAttackFactory, skillPosition);
+}
+
+void AActionPlayer2::CreateSkill1AttackEffect()
+{
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer2_Skill1>(skill1AttackFactory, skillPosition);
 }
