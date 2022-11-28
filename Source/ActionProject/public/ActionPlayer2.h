@@ -32,6 +32,10 @@ public:
 		class UStaticMeshComponent* weaponComp;				//무기메시 컴포넌트 등록
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UArrowComponent* skillArrow;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		class UArrowComponent* lineTracingArrow;
+	UPROPERTY(VisibleAnywhere, Category = Decal)
+		class UDecalComponent* skill2Area;				//스킬 2 범위
 
 	bool isAttacking = false;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	
@@ -52,6 +56,8 @@ public:
 		TSubclassOf<class APlayer2_DashAttack> dashAttackFactory;			//대쉬공격액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_Skill1> skill1AttackFactory;			//스킬1액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_Skill2_Portal> skill2AttackFactory;			//스킬2액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -61,9 +67,14 @@ public:
 	void CoolDownRolling();						//구르기 쿨타임 함수
 	void DodgeEnd();							//구르기 애니메이션 완료 함수
 	void LMB_Click();							//일반 공격(마우스 왼쪽)을 눌렀을 때 함수
+	void RMB_Click();							//마우스 오른쪽 클릭
 	void NormalAttack();						//일반 공격 함수
 	void DashAttack();							//대쉬 공격 함수
-	void Skill1Attack();							//스킬1 공격 함수
+	void Skill1Attack();						//스킬1 공격 함수
+	void Skill2Area();							//스킬2 공격 범위
+	void Skill2Attack();						//스킬2 공격 함수
+	bool turnskill2Area = false;				//스킬2 범위를 킨 상태인가?
+	FHitResult HitResult;						//라인트레이스 도착지점
 
 	//이동 방향
 	FVector direction;

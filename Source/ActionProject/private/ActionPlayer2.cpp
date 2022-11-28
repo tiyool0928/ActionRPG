@@ -7,7 +7,9 @@
 #include "Player2_NormalAttack.h"
 #include "Player2_DashAttack.h"
 #include "Player2_Skill1.h"
+#include "Player2_Skill2_Portal.h"
 #include "Components/ArrowComponent.h"
+#include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
 
 AActionPlayer2::AActionPlayer2()
@@ -42,6 +44,22 @@ AActionPlayer2::AActionPlayer2()
 	skillArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("skillArrow"));
 	skillArrow->SetupAttachment(RootComponent);
 	skillArrow->SetRelativeLocation(FVector(70, 0, 0));
+
+	//라인트레이스arrow 컴포넌트
+	lineTracingArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("lineTracingArrow"));
+	lineTracingArrow->SetupAttachment(RootComponent);
+	lineTracingArrow->SetRelativeLocation(FVector(45, 0, 50));
+	lineTracingArrow->SetRelativeRotation(FRotator(-10, 0, 0));
+
+	skill2Area = CreateDefaultSubobject<UDecalComponent>(TEXT("skill2Area"));
+	skill2Area->SetupAttachment(RootComponent);
+	ConstructorHelpers::FObjectFinder<UMaterialInstance> TempSkill2AreaDecal(TEXT("MaterialInstanceConstant'/Game/Megascans/Decals/Painted_Road_Marking_ui5ideecw/MI_Painted_Road_Marking_ui5ideecw_2K.MI_Painted_Road_Marking_ui5ideecw_2K'"));
+	if (TempSkill2AreaDecal.Succeeded())
+	{
+		skill2Area->SetDecalMaterial(TempSkill2AreaDecal.Object);
+		skill2Area->SetWorldScale3D(FVector(0.25f, 2, 2));
+		skill2Area->SetVisibility(false);
+	}
 }
 
 void AActionPlayer2::BeginPlay()
@@ -55,6 +73,25 @@ void AActionPlayer2::BeginPlay()
 void AActionPlayer2::Tick(float DeltaTime)
 {
 	Move();					//캐릭터 이동 함수
+
+	
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(this);
+
+	if (turnskill2Area)
+	{
+		FVector start = lineTracingArrow->GetComponentLocation();
+		FVector end = start + lineTracingArrow->GetComponentRotation().Vector() * 1500.0f;
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, start, end, ECollisionChannel::ECC_WorldDynamic, params))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("HIT ACTOR : %s"), *HitResult.GetActor()->GetName());
+			if (HitResult.GetActor()->GetName() == "StaticMeshActor_1")
+			{
+				skill2Area->SetWorldLocation(HitResult.Location);
+			}
+		}
+	}
 }
 
 void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -76,8 +113,12 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("DodgeRoll"), IE_Pressed, this, &AActionPlayer2::InputDodgeRoll);
 	//공격 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AActionPlayer2::LMB_Click);
+	//공격 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("MouseRight"), IE_Pressed, this, &AActionPlayer2::RMB_Click);
 	//스킬1 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer2::Skill1Attack);
+	//스킬2 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("Skill2"), IE_Pressed, this, &AActionPlayer2::Skill2Area);
 }
 
 void AActionPlayer2::LMB_Click()
@@ -93,11 +134,25 @@ void AActionPlayer2::LMB_Click()
 	}
 }
 
+void AActionPlayer2::RMB_Click()
+{
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
+}
+
 void AActionPlayer2::NormalAttack()
 {
 	//구르고 있으면, 공격중이면 공격X
 	if (isRollingAnim || isAttacking) return;
 
+	if (turnskill2Area)
+	{
+		Skill2Attack();
+		return;
+	}
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayNormalAttackAnim();		//일반공격 애니메이션 on
 	isAttacking = true;
@@ -121,6 +176,36 @@ void AActionPlayer2::Skill1Attack()
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill1AttackAnim();		//스킬1공격 애니메이션 on
+	isAttacking = true;
+}
+
+void AActionPlayer2::Skill2Area()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking) return;
+
+	if (turnskill2Area)
+	{
+		Skill2Attack();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Skill2Area"));
+		turnskill2Area = true;
+		skill2Area->SetVisibility(true);
+	}
+}
+
+void AActionPlayer2::Skill2Attack()
+{
+	FVector skill2Location = HitResult.Location;		//라인트레이스 도착지점 받아두기
+	skill2Location.Z += 1000.0f;
+	turnskill2Area = false;
+	skill2Area->SetVisibility(false);
+	GetWorld()->SpawnActor<APlayer2_Skill2_Portal>(skill2AttackFactory, skill2Location, FRotator(0, 0, 0));
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->PlaySkill2AttackAnim();		//스킬2공격 애니메이션 on
 	isAttacking = true;
 }
 
