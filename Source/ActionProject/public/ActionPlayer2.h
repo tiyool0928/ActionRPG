@@ -38,6 +38,7 @@ public:
 		class UDecalComponent* skill2Area;				//스킬 2 범위
 
 	bool isAttacking = false;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
+	bool isSkill3Attacking = false;			//스킬3공격중인가?	(공격중엔 움직임 x, 구르기 o, 시선회전 x)
 	
 	//좌우 입력 처리
 	void Turn(float value);
@@ -51,13 +52,15 @@ public:
 		float runSpeed = 1200;
 
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
-		TSubclassOf<class APlayer2_NormalAttack> normalAttackFactory;			//일반공격액터생성팩토리
+		TSubclassOf<class APlayer2_NormalAttack> normalAttackFactory;		//일반공격액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_DashAttack> dashAttackFactory;			//대쉬공격액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
-		TSubclassOf<class APlayer2_Skill1> skill1AttackFactory;			//스킬1액터생성팩토리
+		TSubclassOf<class APlayer2_Skill1> skill1AttackFactory;				//스킬1액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
-		TSubclassOf<class APlayer2_Skill2_Portal> skill2AttackFactory;			//스킬2액터생성팩토리
+		TSubclassOf<class APlayer2_Skill2_Portal> skill2AttackFactory;		//스킬2액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_Skill3> skill3AttackFactory;				//스킬3액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -73,6 +76,8 @@ public:
 	void Skill1Attack();						//스킬1 공격 함수
 	void Skill2Area();							//스킬2 공격 범위
 	void Skill2Attack();						//스킬2 공격 함수
+	void Skill3Attack();						//스킬3 공격 함수
+	void Skill3End();							//스킬3 차지 종료 함수
 	bool turnskill2Area = false;				//스킬2 범위를 킨 상태인가?
 	FHitResult HitResult;						//라인트레이스 도착지점
 
@@ -88,10 +93,10 @@ public:
 	void OutputRun();				//달리기 Release
 
 	FTimerHandle RollingCoolTimerHandle;		//구르기 쿨 타이머 생성 및 관리
+	FTimerHandle Skill3EndHandle;				//스킬3 차지타이머
 
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class AGhostTrail> ghostTrailDodgeFactory;	//구르기 잔상 액터생성팩토리
-
 
 	//노티파이 호출 함수
 	UFUNCTION(BlueprintCallable)	//구르기 잔상 생성 함수
@@ -104,6 +109,8 @@ public:
 		void CreateNormalAttackEffect();
 	UFUNCTION(BlueprintCallable)	//대쉬공격 이펙트 출력 함수
 		void CreateDashAttackEffect();
-	UFUNCTION(BlueprintCallable)	//대쉬공격 이펙트 출력 함수
+	UFUNCTION(BlueprintCallable)	//스킬1 이펙트 출력 함수
 		void CreateSkill1AttackEffect();
+	UFUNCTION(BlueprintCallable)	//스킬1 이펙트 출력 함수
+		void CreateSkill3AttackEffect();
 };

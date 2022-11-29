@@ -8,6 +8,7 @@
 #include "Player2_DashAttack.h"
 #include "Player2_Skill1.h"
 #include "Player2_Skill2_Portal.h"
+#include "Player2_Skill3.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
@@ -119,6 +120,9 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Skill1"), IE_Pressed, this, &AActionPlayer2::Skill1Attack);
 	//스킬2 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill2"), IE_Pressed, this, &AActionPlayer2::Skill2Area);
+	//스킬3 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Pressed, this, &AActionPlayer2::Skill3Attack);
+	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Released, this, &AActionPlayer2::Skill3End);
 }
 
 void AActionPlayer2::LMB_Click()
@@ -146,7 +150,7 @@ void AActionPlayer2::RMB_Click()
 void AActionPlayer2::NormalAttack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
 
 	if (turnskill2Area)
 	{
@@ -161,7 +165,7 @@ void AActionPlayer2::NormalAttack()
 void AActionPlayer2::DashAttack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayDashAttackAnim();		//대쉬공격 애니메이션 on
@@ -172,7 +176,7 @@ void AActionPlayer2::DashAttack()
 void AActionPlayer2::Skill1Attack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill1AttackAnim();		//스킬1공격 애니메이션 on
@@ -182,7 +186,7 @@ void AActionPlayer2::Skill1Attack()
 void AActionPlayer2::Skill2Area()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
 
 	if (turnskill2Area)
 	{
@@ -209,13 +213,41 @@ void AActionPlayer2::Skill2Attack()
 	isAttacking = true;
 }
 
+void AActionPlayer2::Skill3Attack()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->PlaySkill3AttackAnim();		//스킬3공격 애니메이션 on
+	isSkill3Attacking = true;
+
+	GetWorld()->GetTimerManager().SetTimer(Skill3EndHandle, this, &AActionPlayer2::Skill3End, 3.0f, true);
+}
+
+void AActionPlayer2::Skill3End()
+{
+	GetWorld()->GetTimerManager().ClearTimer(Skill3EndHandle);		//스킬3 애니메이션 종료
+
+	if (!isSkill3Attacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->Skill3AttackMontage) return;
+
+	anim->PlaySkill3AttackAnim();
+	anim->Montage_JumpToSection("Charge_End", anim->Skill3AttackMontage);
+	//isAttacking = false;						//노티파이에서 false시켜줌
+}
+
 void AActionPlayer2::Turn(float value)
 {
+	if (isSkill3Attacking) return;
 	AddControllerYawInput(value);
 }
 
 void AActionPlayer2::LookUp(float value)
 {
+	if (isSkill3Attacking) return;
 	AddControllerPitchInput(value);
 }
 
@@ -259,6 +291,8 @@ void AActionPlayer2::InputDodgeRoll()
 	//공격중이었으면
 	if (isAttacking)
 		isAttacking = false;
+	else if (isSkill3Attacking)
+		isSkill3Attacking = false;
 
 	isRollingAnim = true;
 	isCoolTimeRolling = true;		//구르기 쿨타임 on
@@ -305,6 +339,10 @@ void AActionPlayer2::Notify_DodgeEnd()
 void AActionPlayer2::EndAttacking()
 {
 	isAttacking = false;
+	if (isSkill3Attacking)
+		isSkill3Attacking = false;
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->StopAllMontages(0.2f);
 }
 
 void AActionPlayer2::CreateNormalAttackEffect()
@@ -323,4 +361,10 @@ void AActionPlayer2::CreateSkill1AttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_Skill1>(skill1AttackFactory, skillPosition);
+}
+
+void AActionPlayer2::CreateSkill3AttackEffect()
+{
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer2_Skill3>(skill3AttackFactory, skillPosition);
 }

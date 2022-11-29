@@ -37,6 +37,9 @@ public:
 	//재생할 스킬2공격 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* Skill2AttackMontage;
+	//재생할 스킬3공격 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* Skill3AttackMontage;
 
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
@@ -48,6 +51,8 @@ public:
 	void PlaySkill1AttackAnim();
 	//스킬2공격 애니메이션 재생
 	void PlaySkill2AttackAnim();
+	//스킬3공격 애니메이션 재생
+	void PlaySkill3AttackAnim();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
