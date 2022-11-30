@@ -61,6 +61,8 @@ public:
 		TSubclassOf<class APlayer2_Skill2_Portal> skill2AttackFactory;		//스킬2액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_Skill3> skill3AttackFactory;				//스킬3액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_Skill4Factory> skill4AttackFactory;				//스킬4액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -78,6 +80,7 @@ public:
 	void Skill2Attack();						//스킬2 공격 함수
 	void Skill3Attack();						//스킬3 공격 함수
 	void Skill3End();							//스킬3 차지 종료 함수
+	void Skill4Attack();						//스킬4 공격 함수
 	bool turnskill2Area = false;				//스킬2 범위를 킨 상태인가?
 	FHitResult HitResult;						//라인트레이스 도착지점
 
@@ -111,6 +114,8 @@ public:
 		void CreateDashAttackEffect();
 	UFUNCTION(BlueprintCallable)	//스킬1 이펙트 출력 함수
 		void CreateSkill1AttackEffect();
-	UFUNCTION(BlueprintCallable)	//스킬1 이펙트 출력 함수
+	UFUNCTION(BlueprintCallable)	//스킬3 이펙트 출력 함수
 		void CreateSkill3AttackEffect();
+	UFUNCTION(BlueprintCallable)	//스킬4 이펙트 출력 함수
+		void CreateSkill4AttackEffect();
 };

@@ -9,6 +9,7 @@
 #include "Player2_Skill1.h"
 #include "Player2_Skill2_Portal.h"
 #include "Player2_Skill3.h"
+#include "Player2_Skill4Factory.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
@@ -123,6 +124,8 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	//스킬3 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Pressed, this, &AActionPlayer2::Skill3Attack);
 	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Released, this, &AActionPlayer2::Skill3End);
+	//스킬4 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Pressed, this, &AActionPlayer2::Skill4Attack);
 }
 
 void AActionPlayer2::LMB_Click()
@@ -237,6 +240,18 @@ void AActionPlayer2::Skill3End()
 	anim->PlaySkill3AttackAnim();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill3AttackMontage);
 	//isAttacking = false;						//노티파이에서 false시켜줌
+}
+
+void AActionPlayer2::Skill4Attack()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->Skill4AttackMontage) return;
+
+	anim->PlaySkill4AttackAnim();
+	isAttacking = true;
 }
 
 void AActionPlayer2::Turn(float value)
@@ -367,4 +382,9 @@ void AActionPlayer2::CreateSkill3AttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_Skill3>(skill3AttackFactory, skillPosition);
+}
+void AActionPlayer2::CreateSkill4AttackEffect()
+{
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer2_Skill4Factory>(skill4AttackFactory, skillPosition);
 }
