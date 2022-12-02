@@ -39,6 +39,7 @@ public:
 
 	bool isAttacking = false;				//공격중인가?		(공격중엔 움직임 x, 구르기 o)
 	bool isSkill3Attacking = false;			//스킬3공격중인가?	(공격중엔 움직임 x, 구르기 o, 시선회전 x)
+	bool isUltimateAttacking = false;		//궁극기중인가?		(공격중엔 움직임 x, 구르기 x, 시선회전 x)
 	
 	//좌우 입력 처리
 	void Turn(float value);
@@ -62,7 +63,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_Skill3> skill3AttackFactory;				//스킬3액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
-		TSubclassOf<class APlayer2_Skill4Factory> skill4AttackFactory;				//스킬4액터생성팩토리
+		TSubclassOf<class APlayer2_Skill4Factory> skill4AttackFactory;		//스킬4액터생성팩토리
+	UPROPERTY(EditDefaultsOnly, Category = Factory)
+		TSubclassOf<class APlayer2_UltimateFactory> ultTornadoAttackFactory;	//궁극기 토네이도 액터생성팩토리
 
 	void InputDodgeRoll();						//구르기 입력
 	bool isRollingAnim = false;					//구르기 애니메이션 재생중인가?
@@ -81,6 +84,7 @@ public:
 	void Skill3Attack();						//스킬3 공격 함수
 	void Skill3End();							//스킬3 차지 종료 함수
 	void Skill4Attack();						//스킬4 공격 함수
+	void UltimateAttack();						//궁극기 공격 함수
 	bool turnskill2Area = false;				//스킬2 범위를 킨 상태인가?
 	FHitResult HitResult;						//라인트레이스 도착지점
 
@@ -118,4 +122,6 @@ public:
 		void CreateSkill3AttackEffect();
 	UFUNCTION(BlueprintCallable)	//스킬4 이펙트 출력 함수
 		void CreateSkill4AttackEffect();
+	UFUNCTION(BlueprintCallable)	//궁극기 이펙트 출력 함수
+		void CreateUltimateAttackEffect();
 };

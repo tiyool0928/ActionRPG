@@ -19,8 +19,8 @@ APlayer2_Skill4::APlayer2_Skill4()
 	boxComp = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Collider"));
 	boxComp->SetupAttachment(rootComp);
 	boxComp->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
-	boxComp->SetRelativeLocation(FVector(100, 0, -75));
-	boxComp->SetBoxExtent(FVector(70, 250, 32));
+	boxComp->SetRelativeLocation(FVector(100, 0, -30));
+	boxComp->SetBoxExtent(FVector(70, 250, 70));
 	//외관 이펙트 컴포넌트
 	effectComp1 = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp1"));
 	effectComp1->SetupAttachment(boxComp);
@@ -35,12 +35,13 @@ APlayer2_Skill4::APlayer2_Skill4()
 	if (TempEffect.Succeeded())
 	{
 		effectComp1->SetTemplate(TempEffect.Object);
-		effectComp1->SetRelativeLocation(FVector(0, -150, 0));
+		effectComp1->SetRelativeLocation(FVector(0, -150, -50));
 		effectComp1->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
 		effectComp2->SetTemplate(TempEffect.Object);
+		effectComp2->SetRelativeLocation(FVector(0, 0, -50));
 		effectComp2->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
 		effectComp3->SetTemplate(TempEffect.Object);
-		effectComp3->SetRelativeLocation(FVector(0, 150, 0));
+		effectComp3->SetRelativeLocation(FVector(0, 150, -50));
 		effectComp3->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
 	}
 }
@@ -61,7 +62,6 @@ void APlayer2_Skill4::BeginPlay()
 void APlayer2_Skill4::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void APlayer2_Skill4::Die()

@@ -74,4 +74,3 @@ void APlayer2_Skill1::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 		}
 	}
 }
-

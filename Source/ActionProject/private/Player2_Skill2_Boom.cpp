@@ -21,12 +21,12 @@ APlayer2_Skill2_Boom::APlayer2_Skill2_Boom()
 	effectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("effectComp"));
 	effectComp->SetupAttachment(boxComp);
 	effectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ConstructorHelpers::FObjectFinder<UParticleSystem> TempEffect(TEXT("ParticleSystem'/Game/Particles/P_P2_Skill2Effect_Boom.P_P2_Skill2Effect_Boom'"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> TempEffect(TEXT("ParticleSystem'/Game/Particles/P_P2_Skill2Effect_Explosion.P_P2_Skill2Effect_Explosion'"));
 	if (TempEffect.Succeeded())
 	{
 		effectComp->SetTemplate(TempEffect.Object);
+		effectComp->SetWorldScale3D(FVector(3, 3, 3));
 	}
-
 }
 
 // Called when the game starts or when spawned
@@ -35,7 +35,7 @@ void APlayer2_Skill2_Boom::BeginPlay()
 	Super::BeginPlay();
 	
 	boxComp->OnComponentBeginOverlap.AddDynamic(this, &APlayer2_Skill2_Boom::OnOverlapBegin);
-	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer2_Skill2_Boom::Die, 1.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(deathTimerHandle, this, &APlayer2_Skill2_Boom::Die, 1.0f, false);
 }
 
 // Called every frame

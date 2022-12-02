@@ -10,6 +10,7 @@
 #include "Player2_Skill2_Portal.h"
 #include "Player2_Skill3.h"
 #include "Player2_Skill4Factory.h"
+#include "player2_UltimateFactory.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
@@ -126,6 +127,8 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction(TEXT("Skill3"), IE_Released, this, &AActionPlayer2::Skill3End);
 	//스킬4 입력 바인딩
 	PlayerInputComponent->BindAction(TEXT("Skill4"), IE_Pressed, this, &AActionPlayer2::Skill4Attack);
+	//궁극기 입력 바인딩
+	PlayerInputComponent->BindAction(TEXT("Ultimate"), IE_Pressed, this, &AActionPlayer2::UltimateAttack);
 }
 
 void AActionPlayer2::LMB_Click()
@@ -153,7 +156,7 @@ void AActionPlayer2::RMB_Click()
 void AActionPlayer2::NormalAttack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	if (turnskill2Area)
 	{
@@ -168,7 +171,7 @@ void AActionPlayer2::NormalAttack()
 void AActionPlayer2::DashAttack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayDashAttackAnim();		//대쉬공격 애니메이션 on
@@ -179,7 +182,7 @@ void AActionPlayer2::DashAttack()
 void AActionPlayer2::Skill1Attack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill1AttackAnim();		//스킬1공격 애니메이션 on
@@ -189,7 +192,7 @@ void AActionPlayer2::Skill1Attack()
 void AActionPlayer2::Skill2Area()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	if (turnskill2Area)
 	{
@@ -219,7 +222,7 @@ void AActionPlayer2::Skill2Attack()
 void AActionPlayer2::Skill3Attack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking) return;
+	if (isRollingAnim || isAttacking || isUltimateAttacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill3AttackAnim();		//스킬3공격 애니메이션 on
@@ -245,7 +248,7 @@ void AActionPlayer2::Skill3End()
 void AActionPlayer2::Skill4Attack()
 {
 	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4AttackMontage) return;
@@ -254,15 +257,27 @@ void AActionPlayer2::Skill4Attack()
 	isAttacking = true;
 }
 
+void AActionPlayer2::UltimateAttack()
+{
+	//구르고 있으면, 공격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->UltimateAttackMontage) return;
+
+	anim->PlayUltimateAttackAnim();
+	isUltimateAttacking = true;
+}
+
 void AActionPlayer2::Turn(float value)
 {
-	if (isSkill3Attacking) return;
+	if (isSkill3Attacking || isUltimateAttacking) return;
 	AddControllerYawInput(value);
 }
 
 void AActionPlayer2::LookUp(float value)
 {
-	if (isSkill3Attacking) return;
+	if (isSkill3Attacking || isUltimateAttacking) return;
 	AddControllerPitchInput(value);
 }
 
@@ -279,7 +294,7 @@ void AActionPlayer2::InputVertical(float value)
 void AActionPlayer2::Move()
 {
 	//공격중이면
-	if (isAttacking) return;
+	if (isAttacking || isSkill3Attacking || isUltimateAttacking) return;
 
 	direction = FTransform(GetControlRotation()).TransformVector(direction);
 	AddMovementInput(direction);
@@ -298,7 +313,7 @@ void AActionPlayer2::OutputRun()
 
 void AActionPlayer2::InputDodgeRoll()
 {
-	if (isRollingAnim) return;
+	if (isRollingAnim || isUltimateAttacking) return;
 	//구르기 애니메이션 재생
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 
@@ -356,6 +371,8 @@ void AActionPlayer2::EndAttacking()
 	isAttacking = false;
 	if (isSkill3Attacking)
 		isSkill3Attacking = false;
+	if (isUltimateAttacking)
+		isUltimateAttacking = false;
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->StopAllMontages(0.2f);
 }
@@ -387,4 +404,10 @@ void AActionPlayer2::CreateSkill4AttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_Skill4Factory>(skill4AttackFactory, skillPosition);
+}
+
+void AActionPlayer2::CreateUltimateAttackEffect()
+{
+	FTransform skillPosition = skillArrow->GetComponentTransform();
+	GetWorld()->SpawnActor<APlayer2_UltimateFactory>(ultTornadoAttackFactory, skillPosition);
 }
