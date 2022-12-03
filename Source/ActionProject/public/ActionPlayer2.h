@@ -85,6 +85,7 @@ public:
 	void Skill3End();							//스킬3 차지 종료 함수
 	void Skill4Attack();						//스킬4 공격 함수
 	void UltimateAttack();						//궁극기 공격 함수
+	void UltimateHoldOff();						//궁극기 자세 유지 해제
 	bool turnskill2Area = false;				//스킬2 범위를 킨 상태인가?
 	FHitResult HitResult;						//라인트레이스 도착지점
 
@@ -101,6 +102,7 @@ public:
 
 	FTimerHandle RollingCoolTimerHandle;		//구르기 쿨 타이머 생성 및 관리
 	FTimerHandle Skill3EndHandle;				//스킬3 차지타이머
+	FTimerHandle UltimateHoldOffHandle;			//궁극기 자세 해제 관리
 
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class AGhostTrail> ghostTrailDodgeFactory;	//구르기 잔상 액터생성팩토리

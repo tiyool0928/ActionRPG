@@ -14,6 +14,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
+#include <Camera/CameraComponent.h>
 
 AActionPlayer2::AActionPlayer2()
 {
@@ -77,7 +78,6 @@ void AActionPlayer2::Tick(float DeltaTime)
 {
 	Move();					//캐릭터 이동 함수
 
-	
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(this);
 
@@ -94,6 +94,17 @@ void AActionPlayer2::Tick(float DeltaTime)
 				skill2Area->SetWorldLocation(HitResult.Location);
 			}
 		}
+	}
+
+	if (isUltimateAttacking)
+	{
+		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(-500, 0, 600), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(-30, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+	}
+	else
+	{
+		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
 	}
 }
 
@@ -267,6 +278,20 @@ void AActionPlayer2::UltimateAttack()
 
 	anim->PlayUltimateAttackAnim();
 	isUltimateAttacking = true;
+	
+	//this->tpsCamComp->SetRelativeLocationAndRotation(FVector(-500, 0, 600), FRotator(-30, 0, 0));
+	
+	GetWorld()->GetTimerManager().SetTimer(UltimateHoldOffHandle, this, &AActionPlayer2::UltimateHoldOff, 4.5f, true);
+}
+
+void AActionPlayer2::UltimateHoldOff()
+{
+	GetWorld()->GetTimerManager().ClearTimer(UltimateHoldOffHandle);
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->UltimateAttackMontage) return;
+
+	anim->PlayUltimateAttackAnim();
+	anim->Montage_JumpToSection(FName("Hold off"), anim->UltimateAttackMontage);
 }
 
 void AActionPlayer2::Turn(float value)
