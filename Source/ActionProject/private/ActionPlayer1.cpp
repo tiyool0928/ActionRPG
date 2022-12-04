@@ -150,10 +150,11 @@ void AActionPlayer1::BeginPlay()
 void AActionPlayer1::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
 
 	if (OverLapSkill2Actors.Num() > 0)				//스킬2를 쓰는중에 액터가 들어와있으면
 	{
-		UPlayer1AttackComponent* attackVar = this->FindComponentByClass<UPlayer1AttackComponent>();
+		
 		if (!attackVar->skill2Delay)							//딜레이가 비활성화 되어있다면
 		{
 			for (int i = 0; i < OverLapSkill2Actors.Num(); i++)
@@ -163,6 +164,17 @@ void AActionPlayer1::Tick(float DeltaTime)
 			attackVar->skill2Delay = true;
 			GetWorldTimerManager().SetTimer(Skill2DamageDelayHandle, this, &AActionPlayer1::Skill2DamageDelay, 0.5f, true);
 		}
+	}
+
+	if (attackVar->isUltimateAttacking)
+	{
+		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(-500, 0, 500), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(-20, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+	}
+	else
+	{
+		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
 	}
 }
 

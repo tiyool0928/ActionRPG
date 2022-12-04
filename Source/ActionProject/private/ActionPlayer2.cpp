@@ -98,8 +98,8 @@ void AActionPlayer2::Tick(float DeltaTime)
 
 	if (isUltimateAttacking)
 	{
-		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(-500, 0, 600), GetWorld()->GetDeltaSeconds(), 3.0f));
-		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(-30, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(-500, 0, 500), GetWorld()->GetDeltaSeconds(), 3.0f));
+		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(-20, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
 	}
 	else
 	{
