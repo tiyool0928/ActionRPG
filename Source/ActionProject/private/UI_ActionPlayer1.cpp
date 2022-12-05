@@ -74,8 +74,7 @@ void UUI_ActionPlayer1::UpdateChargeBar()
 void UUI_ActionPlayer1::OnVisibilityChargeBar()
 {
 	ChargeBarOverLay->SetVisibility(ESlateVisibility::Visible);
-	PerfectZone->SetVisibility(ESlateVisibility::Visible);
-		
+	PerfectZone->SetVisibility(ESlateVisibility::Visible);	
 }
 
 void UUI_ActionPlayer1::OffVisibilityChargeBar()

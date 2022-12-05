@@ -43,8 +43,15 @@ public:
 	//재생할 스킬4공격 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* Skill4AttackMontage;
+	//재생할 궁극기스킬 몽타주
 	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
 		class UAnimMontage* UltimateAttackMontage;
+	//재생할 피격 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* SmallImpactMontage;
+	//재생할 사망 몽타주
+	UPROPERTY(EditDefaultsOnly, Category = PlayerAnim)
+		class UAnimMontage* DieMontage;
 
 	//구르기 애니메이션 재생
 	void PlayDodgeRollAnim();
@@ -62,6 +69,10 @@ public:
 	void PlaySkill4AttackAnim();
 	//궁극기공격 애니메이션 재생
 	void PlayUltimateAttackAnim();
+	//피격 애니메이션 재생
+	void PlaySmallImpactMontage();
+	//피격 애니메이션 재생
+	void PlayDieMontage();
 
 	//매 프레임 갱신
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;

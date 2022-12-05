@@ -11,6 +11,7 @@
 #include "Player2_Skill3.h"
 #include "Player2_Skill4Factory.h"
 #include "player2_UltimateFactory.h"
+#include "UI_ActionPlayer2.h"
 #include "Components/ArrowComponent.h"
 #include "Components/DecalComponent.h"
 #include <GameFramework/CharacterMovementComponent.h>
@@ -72,6 +73,17 @@ void AActionPlayer2::BeginPlay()
 
 	//초기 속도 걷기속도
 	GetCharacterMovement()->MaxWalkSpeed = walkSpeed;
+
+	if (IsValid(HPBarWidget))
+	{
+		Widget = Cast<UUI_ActionPlayer2>(CreateWidget(GetWorld(), HPBarWidget));
+		if (Widget != nullptr)
+		{
+			Widget->SetOwnerPlayer(this);
+			Widget->AddToViewport();
+			Widget->UpdateHealthBar();
+		}
+	}
 }
 
 void AActionPlayer2::Tick(float DeltaTime)
@@ -94,6 +106,23 @@ void AActionPlayer2::Tick(float DeltaTime)
 				skill2Area->SetWorldLocation(HitResult.Location);
 			}
 		}
+	}
+
+	if (isSkill3Attacking)
+	{
+		curSkill3Charge += DeltaTime * 1.25f;
+
+		UUI_ActionPlayer2* OwnerWidget = this->Widget;
+		if (OwnerWidget == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+			return;
+		}
+		OwnerWidget->UpdateChargeBar();
+	}
+	else
+	{
+		curSkill3Charge = 0;
 	}
 
 	if (isUltimateAttacking)
@@ -145,7 +174,7 @@ void AActionPlayer2::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 void AActionPlayer2::LMB_Click()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("LMB_Click!"));
-	if (!isAttacking)			//노말공격도 대쉬공격도 하고 있지않은 상태
+	if (!isAttacking && !isImpacting)			//공격중x 피격중x
 	{
 		auto movement = GetCharacterMovement();		//달리는 중이면 대쉬공격 실행
 		if (movement->MaxWalkSpeed == runSpeed)
@@ -166,8 +195,8 @@ void AActionPlayer2::RMB_Click()
 
 void AActionPlayer2::NormalAttack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 피격중 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isImpacting) return;
 
 	if (turnskill2Area)
 	{
@@ -181,8 +210,14 @@ void AActionPlayer2::NormalAttack()
 
 void AActionPlayer2::DashAttack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 피격중 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlayDashAttackAnim();		//대쉬공격 애니메이션 on
@@ -192,18 +227,45 @@ void AActionPlayer2::DashAttack()
 
 void AActionPlayer2::Skill1Attack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isCoolTimeSkill1 || isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill1AttackAnim();		//스킬1공격 애니메이션 on
 	isAttacking = true;
+	skill1CoolTime = maxSkill1CoolTime;
+	GetWorld()->GetTimerManager().SetTimer(Skill1CoolTimerHandle, this, &AActionPlayer2::CoolDownSkill1, 1.0f, true);
+	isCoolTimeSkill1 = true;		//스킬1 쿨타임 on
+}
+
+void AActionPlayer2::CoolDownSkill1()
+{
+	--skill1CoolTime;
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill1CoolTime();
+
+	if (skill1CoolTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Skill1CoolTimerHandle);
+		isCoolTimeSkill1 = false;					//스킬1 사용가능
+	}
 }
 
 void AActionPlayer2::Skill2Area()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isCoolTimeSkill2 || isImpacting) return;
 
 	if (turnskill2Area)
 	{
@@ -228,18 +290,70 @@ void AActionPlayer2::Skill2Attack()
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill2AttackAnim();		//스킬2공격 애니메이션 on
 	isAttacking = true;
+
+	skill2CoolTime = maxSkill2CoolTime;
+	GetWorld()->GetTimerManager().SetTimer(Skill2CoolTimerHandle, this, &AActionPlayer2::CoolDownSkill2, 1.0f, true);
+	isCoolTimeSkill2 = true;		//스킬2 쿨타임 on
+}
+
+void AActionPlayer2::CoolDownSkill2()
+{
+	--skill2CoolTime;
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill2CoolTime();
+
+	if (skill2CoolTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Skill2CoolTimerHandle);
+		isCoolTimeSkill2 = false;					//스킬2 사용가능
+	}
 }
 
 void AActionPlayer2::Skill3Attack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isUltimateAttacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isUltimateAttacking || isCoolTimeSkill3 || isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	anim->PlaySkill3AttackAnim();		//스킬3공격 애니메이션 on
 	isSkill3Attacking = true;
 
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	OwnerWidget->OnVisibilityChargeBar();			//차지바 보이도록 설정
+
 	GetWorld()->GetTimerManager().SetTimer(Skill3EndHandle, this, &AActionPlayer2::Skill3End, 3.0f, true);
+	skill3CoolTime = maxSkill3CoolTime;
+	GetWorld()->GetTimerManager().SetTimer(Skill3CoolTimerHandle, this, &AActionPlayer2::CoolDownSkill3, 1.0f, true);
+	isCoolTimeSkill3 = true;		//스킬3 쿨타임 on
+}
+
+void AActionPlayer2::CoolDownSkill3()
+{
+	--skill3CoolTime;
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill3CoolTime();
+
+	if (skill3CoolTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Skill3CoolTimerHandle);
+		isCoolTimeSkill3 = false;					//스킬3 사용가능
+	}
 }
 
 void AActionPlayer2::Skill3End()
@@ -258,30 +372,82 @@ void AActionPlayer2::Skill3End()
 
 void AActionPlayer2::Skill4Attack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isCoolTimeSkill4 || isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->Skill4AttackMontage) return;
 
 	anim->PlaySkill4AttackAnim();
 	isAttacking = true;
+	skill4CoolTime = maxSkill4CoolTime;
+	GetWorld()->GetTimerManager().SetTimer(Skill4CoolTimerHandle, this, &AActionPlayer2::CoolDownSkill4, 1.0f, true);
+	isCoolTimeSkill4 = true;		//스킬4 쿨타임 on
+}
+
+void AActionPlayer2::CoolDownSkill4()
+{
+	--skill4CoolTime;
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateSkill4CoolTime();
+
+	if (skill4CoolTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Skill4CoolTimerHandle);
+		isCoolTimeSkill4 = false;					//스킬4 사용가능
+	}
 }
 
 void AActionPlayer2::UltimateAttack()
 {
-	//구르고 있으면, 공격중이면 공격X
-	if (isRollingAnim || isAttacking || isSkill3Attacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isCoolTimeUltimate|| isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
 
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 	if (!anim || !anim->UltimateAttackMontage) return;
 
 	anim->PlayUltimateAttackAnim();
 	isUltimateAttacking = true;
-	
-	//this->tpsCamComp->SetRelativeLocationAndRotation(FVector(-500, 0, 600), FRotator(-30, 0, 0));
-	
 	GetWorld()->GetTimerManager().SetTimer(UltimateHoldOffHandle, this, &AActionPlayer2::UltimateHoldOff, 4.5f, true);
+
+	ultimateCoolTime = maxUltimateCoolTime;
+	GetWorld()->GetTimerManager().SetTimer(UltimateCoolTimerHandle, this, &AActionPlayer2::CoolDownUltimate, 1.0f, true);
+	isCoolTimeUltimate = true;		//궁극기 쿨타임 on
+}
+
+void AActionPlayer2::CoolDownUltimate()
+{
+	--ultimateCoolTime;
+	UUI_ActionPlayer2* OwnerWidget = this->Widget;
+	if (OwnerWidget == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
+		return;
+	}
+	OwnerWidget->UpdateUltCoolTime();
+
+	if (ultimateCoolTime <= 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(Skill1CoolTimerHandle);
+		isCoolTimeUltimate = false;					//궁극기 사용가능
+	}
 }
 
 void AActionPlayer2::UltimateHoldOff()
@@ -292,6 +458,26 @@ void AActionPlayer2::UltimateHoldOff()
 
 	anim->PlayUltimateAttackAnim();
 	anim->Montage_JumpToSection(FName("Hold off"), anim->UltimateAttackMontage);
+}
+
+void AActionPlayer2::PlayerDie()
+{
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	if (!anim || !anim->DieMontage) return;
+
+	anim->PlayDieMontage();
+	isImpacting = true;
+	GetWorld()->GetTimerManager().SetTimer(DieDelayTimerHandle, this, &AActionPlayer2::GamePause, 2.0f, true);
+}
+
+void AActionPlayer2::GamePause()
+{
+	GetWorld()->GetTimerManager().ClearTimer(DieDelayTimerHandle);
+	APlayerController* const MyPlayer = Cast<APlayerController>(GEngine->GetFirstLocalPlayerController(GetWorld()));
+	if (MyPlayer != NULL)
+	{
+		MyPlayer->SetPause(true);
+	}
 }
 
 void AActionPlayer2::Turn(float value)
@@ -318,8 +504,8 @@ void AActionPlayer2::InputVertical(float value)
 
 void AActionPlayer2::Move()
 {
-	//공격중이면
-	if (isAttacking || isSkill3Attacking || isUltimateAttacking) return;
+	//구르기, 공격중, 쿨타임, 피격중이면 공격X
+	if (isRollingAnim || isAttacking || isSkill3Attacking || isUltimateAttacking || isImpacting) return;
 
 	direction = FTransform(GetControlRotation()).TransformVector(direction);
 	AddMovementInput(direction);
@@ -338,7 +524,15 @@ void AActionPlayer2::OutputRun()
 
 void AActionPlayer2::InputDodgeRoll()
 {
-	if (isRollingAnim || isUltimateAttacking) return;
+	//궁극기, 쿨타임, 피격중이면 공격X
+	if (isUltimateAttacking || isCoolTimeRolling || isImpacting) return;
+
+	if (turnskill2Area)
+	{
+		turnskill2Area = false;
+		skill2Area->SetVisibility(false);
+	}
+
 	//구르기 애니메이션 재생
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
 
@@ -395,7 +589,12 @@ void AActionPlayer2::EndAttacking()
 {
 	isAttacking = false;
 	if (isSkill3Attacking)
+	{
 		isSkill3Attacking = false;
+		UUI_ActionPlayer2* OwnerWidget = this->Widget;
+		OwnerWidget->OffVisibilityChargeBar();			//차지바 보이도록 설정
+	}
+		
 	if (isUltimateAttacking)
 		isUltimateAttacking = false;
 	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
@@ -435,4 +634,46 @@ void AActionPlayer2::CreateUltimateAttackEffect()
 {
 	FTransform skillPosition = skillArrow->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_UltimateFactory>(ultTornadoAttackFactory, skillPosition);
+}
+
+void AActionPlayer2::SmallImpactEnd()
+{
+	isImpacting = false;
+}
+
+float AActionPlayer2::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	const float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	if (ActualDamage > 0.f)
+	{
+		playerHealth -= Damage;
+		if (playerHealth < 0)
+		{
+			playerHealth = 0;
+		}
+		Widget->UpdateHealthBar();
+	}
+
+	if (playerHealth <= 0)
+	{
+		SetActorEnableCollision(false);
+		PlayerDie();
+		UE_LOG(LogTemp, Warning, TEXT("Player1 Die"));
+		return ActualDamage;
+	}
+
+	//스킬공격, 궁극기, 대쉬공격, 구르기 중에는 피격모션 X
+	if (isAttacking || isSkill3Attacking || isUltimateAttacking || isRollingAnim) return ActualDamage;
+
+	auto anim = Cast<UPlayer2Anim>(GetMesh()->GetAnimInstance());
+	anim->PlaySmallImpactMontage();
+
+	isImpacting = true;
+	if (isAttacking)					//일반공격중에 피격모션이 나왔을 경우
+	{
+		isAttacking = false;			//공격중을 false로
+	}
+
+	return ActualDamage;
 }

@@ -5,6 +5,7 @@
 #include "BossAIController.h"
 #include "EnemyBoss.h"
 #include "ActionPlayer1.h"
+#include "BasePlayer.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTT_TurnToPlayer::UBTT_TurnToPlayer()
@@ -20,7 +21,7 @@ EBTNodeResult::Type UBTT_TurnToPlayer::ExecuteTask(UBehaviorTreeComponent& Owner
 	if (nullptr == enemyBoss)
 		return EBTNodeResult::Failed;
 
-	auto Target = Cast<AActionPlayer1>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
+	auto Target = Cast<ABasePlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
 	if (nullptr == Target)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL Target"));

@@ -5,6 +5,7 @@
 #include "BossAIController.h"
 #include "EnemyBoss.h"
 #include "ActionPlayer1.h"
+#include "BasePlayer.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
 
@@ -43,7 +44,7 @@ void UBTS_Detect::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory,
 		for (auto const& OverlapResult : OverlapResults)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("after for auto"));
-			AActionPlayer1* Player = Cast<AActionPlayer1>(OverlapResult.GetActor());
+			ABasePlayer* Player = Cast<ABasePlayer>(OverlapResult.GetActor());
 			if (Player && Player->GetController()->IsPlayerController())
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("after BossIsPlayerController"));

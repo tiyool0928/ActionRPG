@@ -5,6 +5,7 @@
 #include "BossAIController.h"
 #include "EnemyBoss.h"
 #include "ActionPlayer1.h"
+#include "BasePlayer.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTS_IsInAttackRange::UBTS_IsInAttackRange()
@@ -21,7 +22,7 @@ void UBTS_IsInAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* No
 	if (nullptr == controllingPawn)
 		return;
 
-	auto target = Cast<AActionPlayer1>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
+	auto target = Cast<ABasePlayer>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(ABossAIController::Player1Key));
 	if (target == nullptr)
 		return;
 

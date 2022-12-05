@@ -104,7 +104,7 @@ public:
 	FTimerHandle Skill4EndMotionDelayHandle;	//스킬4 종료 모션 딜레이 관리
 	FTimerHandle Skill4CoolTimerHandle;			//스킬4 쿨 타이머 생성 및 관리
 	FTimerHandle UltimateCoolTimerHandle;		//궁극기 쿨 타이머 생성 및 관리
-	FTimerHandle DieDelayTimerHandle;		//사망 애니메이션 딜레이 관리
+	FTimerHandle DieDelayTimerHandle;			//사망 애니메이션 딜레이 관리
 
 	void AttackDamageApplyingComp();	//공격의 데미지 영역 부분인지 확인 함수
 	void AttackDamageEndComp();			//공격의 데미지 영역 부분이 끝나는 함수

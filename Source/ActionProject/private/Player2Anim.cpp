@@ -69,6 +69,22 @@ void UPlayer2Anim::PlayUltimateAttackAnim()
 	}
 }
 
+void UPlayer2Anim::PlaySmallImpactMontage()
+{
+	if (SmallImpactMontage != nullptr)
+	{
+		Montage_Play(SmallImpactMontage);
+	}
+}
+
+void UPlayer2Anim::PlayDieMontage()
+{
+	if (DieMontage != nullptr)
+	{
+		Montage_Play(DieMontage);
+	}
+}
+
 void UPlayer2Anim::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
