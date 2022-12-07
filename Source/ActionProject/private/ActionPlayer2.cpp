@@ -93,17 +93,18 @@ void AActionPlayer2::Tick(float DeltaTime)
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(this);
 
-	if (turnskill2Area)
+	if (turnskill2Area)		//스킬2범위 표현이 켜진상태이면
 	{
-		FVector start = lineTracingArrow->GetComponentLocation();
+		FVector start = lineTracingArrow->GetComponentLocation();		
 		FVector end = start + lineTracingArrow->GetComponentRotation().Vector() * 1500.0f;
 
+		//lineTracingArrow 방향으로 1500까지 라인트레이스를 쏴준다.
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, start, end, ECollisionChannel::ECC_WorldDynamic, params))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("HIT ACTOR : %s"), *HitResult.GetActor()->GetName());
-			if (HitResult.GetActor()->GetName() == "StaticMeshActor_1")
+			if (HitResult.GetActor()->GetName() == "StaticMeshActor_1")		//바닥에 닿았다면
 			{
-				skill2Area->SetWorldLocation(HitResult.Location);
+				skill2Area->SetWorldLocation(HitResult.Location);			//스킬범위데칼을 뿌려준다.
 			}
 		}
 	}
@@ -112,7 +113,7 @@ void AActionPlayer2::Tick(float DeltaTime)
 	{
 		curSkill3Charge += DeltaTime * 1.25f;
 
-		UUI_ActionPlayer2* OwnerWidget = this->Widget;
+		UUI_ActionPlayer2* OwnerWidget = Widget;
 		if (OwnerWidget == nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Can't find Widget"));
@@ -125,15 +126,19 @@ void AActionPlayer2::Tick(float DeltaTime)
 		curSkill3Charge = 0;
 	}
 
-	if (isUltimateAttacking)
+	if (isUltimateAttacking)	//궁극기 사용시 카메라를 (-500, 0, 500)만큼 멀리한다
 	{
-		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(-500, 0, 500), GetWorld()->GetDeltaSeconds(), 3.0f));
-		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(-20, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		tpsCamComp->SetRelativeLocation(FMath::VInterpTo(tpsCamComp->GetRelativeLocation(),
+			FVector(-500, 0, 500), GetWorld()->GetDeltaSeconds(), 3.0f));
+		tpsCamComp->SetRelativeRotation(FMath::RInterpTo(tpsCamComp->GetRelativeRotation(),
+			FRotator(-20, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
 	}
 	else
 	{
-		this->tpsCamComp->SetRelativeLocation(FMath::VInterpTo(this->tpsCamComp->GetRelativeLocation(), FVector(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
-		this->tpsCamComp->SetRelativeRotation(FMath::RInterpTo(this->tpsCamComp->GetRelativeRotation(), FRotator(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		tpsCamComp->SetRelativeLocation(FMath::VInterpTo(tpsCamComp->GetRelativeLocation(),
+			FVector(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
+		tpsCamComp->SetRelativeRotation(FMath::RInterpTo(tpsCamComp->GetRelativeRotation(),
+			FRotator(0, 0, 0), GetWorld()->GetDeltaSeconds(), 3.0f));
 	}
 }
 

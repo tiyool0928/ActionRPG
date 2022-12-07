@@ -335,8 +335,8 @@ void UPlayer1AttackComponent::OutputSkill4()
 	if (!anim || !anim->Skill4Montage) return;
 
 	anim->PlaySkill4Montage();
-	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkill4Releasing = false;
+	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);			//차징완료 애니메이션 
+	isSkill4Releasing = false;												//차징 끝
 
 	GetWorld()->GetTimerManager().SetTimer
 	(Skill4EndMotionDelayHandle, this, &UPlayer1AttackComponent::Skill4EndMotionDelay, 1.0f, true);
@@ -344,7 +344,7 @@ void UPlayer1AttackComponent::OutputSkill4()
 	if (skill4FeverTime)
 	{
 		FTransform skillPosition = me->skillArrow->GetComponentTransform();
-		GetWorld()->SpawnActor<APlayer1_Skill4>(skill4Factory, skillPosition);
+		GetWorld()->SpawnActor<APlayer1_Skill4>(skill4Factory, skillPosition);	//스킬 4 액터 생성
 	}
 }
 

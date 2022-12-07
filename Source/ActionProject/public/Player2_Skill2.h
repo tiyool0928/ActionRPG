@@ -35,6 +35,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_Skill2_Boom> skill2BoomFactory;			//스킬2폭파이펙트생성팩토리
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UCameraShakeBase> camShake;
+
 	bool overlapCheck = false;
 
 	void Die();									//발사체 소멸

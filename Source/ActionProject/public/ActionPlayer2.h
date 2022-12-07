@@ -90,7 +90,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_UltimateFactory> ultTornadoAttackFactory;	//궁극기 토네이도 액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = UI)
-		TSubclassOf<UUserWidget> HPBarWidget;
+		TSubclassOf<UUserWidget> HPBarWidget;								//Player2 UI
 
 	class UUI_ActionPlayer2* Widget;
 

@@ -65,6 +65,11 @@ void APlayer2_Skill2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 			FTransform skillPosition = boxComp->GetComponentTransform();
 			GetWorld()->SpawnActor<APlayer2_Skill2_Boom>(skill2BoomFactory, skillPosition);
 
+			if (camShake != NULL)
+			{
+				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 1.0f);
+			}
+
 			Die();
 		}
 	}
