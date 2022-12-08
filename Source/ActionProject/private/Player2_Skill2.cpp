@@ -67,7 +67,8 @@ void APlayer2_Skill2::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 
 			if (camShake != NULL)
 			{
-				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 1.0f);
+				//카메라 흔들림 0.01f
+				GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.3f);
 			}
 
 			Die();

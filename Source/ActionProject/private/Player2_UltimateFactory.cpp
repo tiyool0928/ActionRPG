@@ -55,4 +55,9 @@ void APlayer2_UltimateFactory::CreateExplosion()
 {
 	FTransform skillPosition = rootComp->GetComponentTransform();
 	GetWorld()->SpawnActor<APlayer2_Ultimate_Explosion>(ultExplosionAttackFactory, skillPosition);
+
+	if (camShake != NULL)
+	{
+		GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.5f);
+	}
 }

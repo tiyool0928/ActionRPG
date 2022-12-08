@@ -93,6 +93,8 @@ public:
 		TSubclassOf<class APlayer1_Skill4Landing> skill4LandingFactory;	//스킬 4액터생성팩토리
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer1_UltimateBoom> ultimateFactory;	//궁극기 액터생성팩토리
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UCameraShakeBase> camShake;						//카메라 흔들림
 
 	FTimerHandle DashAttackAnimTimerHandle;		//대쉬공격 모션 재생 타이머 생성 및 관리
 	FTimerHandle Skill1CoolTimerHandle;			//스킬1 쿨 타이머 생성 및 관리

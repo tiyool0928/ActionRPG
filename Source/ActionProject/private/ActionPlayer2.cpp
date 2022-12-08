@@ -658,6 +658,11 @@ float AActionPlayer2::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 			playerHealth = 0;
 		}
 		Widget->UpdateHealthBar();
+		if (camShake != NULL)
+		{
+			//카메라 흔들림 0.01f
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.3f);
+		}
 	}
 
 	if (playerHealth <= 0)

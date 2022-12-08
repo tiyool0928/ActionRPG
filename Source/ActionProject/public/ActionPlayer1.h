@@ -49,6 +49,8 @@ public:
 		class UPlayer1BaseComponent* playerAttack;				//공격 컴포넌트
 	UPROPERTY(EditDefaultsOnly, Category = UI)
 		TSubclassOf<UUserWidget> HPBarWidget;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UCameraShakeBase> camShake;
 
 	class UUI_ActionPlayer1* Widget;
 	

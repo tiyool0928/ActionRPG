@@ -40,6 +40,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Factory)
 		TSubclassOf<class APlayer2_Ultimate_Explosion> ultExplosionAttackFactory;	//궁극기 토네이도4 액터생성팩토리
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<UCameraShakeBase> camShake;
+
 	void Die();									//소멸
 	void CreateTornado();						//토네이도 생성
 	void CreateExplosion();						//폭발 생성

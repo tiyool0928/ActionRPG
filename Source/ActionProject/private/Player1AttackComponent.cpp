@@ -158,6 +158,12 @@ void UPlayer1AttackComponent::AttackDamageEndComp()
 	{
 		FTransform skillPosition = me->skillArrow->GetComponentTransform();
 		GetWorld()->SpawnActor<APlayer1_UltimateBoom>(ultimateFactory, skillPosition);
+
+		if (camShake != NULL)
+		{
+			//카메라 흔들림 0.5f
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.5f);
+		}
 	}
 }
 
@@ -345,6 +351,12 @@ void UPlayer1AttackComponent::OutputSkill4()
 	{
 		FTransform skillPosition = me->skillArrow->GetComponentTransform();
 		GetWorld()->SpawnActor<APlayer1_Skill4>(skill4Factory, skillPosition);	//스킬 4 액터 생성
+
+		if (camShake != NULL)
+		{
+			//카메라 흔들림 0.3f
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.3f);
+		}
 	}
 }
 
@@ -377,11 +389,10 @@ void UPlayer1AttackComponent::Skill4EndDelay()
 
 	anim->PlaySkill4Montage();
 	anim->Montage_JumpToSection("Charge_End", anim->Skill4Montage);
-	isSkill4Attacking = false;
+	isSkill4Releasing = false;
 
-	Skill4EndMotionDelay();
-	//GetWorld()->GetTimerManager().SetTimer
-	//(Skill4EndMotionDelayHandle, this, &UPlayerAttackComponent::Skill4EndMotionDelay, 1.0f, true);
+	GetWorld()->GetTimerManager().SetTimer
+	(Skill4EndMotionDelayHandle, this, &UPlayer1AttackComponent::Skill4EndMotionDelay, 1.0f, true);
 }
 
 void UPlayer1AttackComponent::Skill4EndMotionDelay()

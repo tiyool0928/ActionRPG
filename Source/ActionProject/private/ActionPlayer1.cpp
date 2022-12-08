@@ -371,6 +371,7 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 {
 	const float ActualDamage = Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
+	//대미지가 0보다 높으면
 	if (ActualDamage > 0.f)
 	{
 		player1Health -= Damage;
@@ -378,8 +379,13 @@ float AActionPlayer1::TakeDamage(float Damage, FDamageEvent const& DamageEvent, 
 		{
 			player1Health = 0;
 		}
+		//UI 체력바 업데이트
 		Widget->UpdateHealthBar();
-		//UE_LOG(LogTemp, Warning, TEXT("Player1Health: %f"), player1Health);
+		if (camShake != NULL)
+		{
+			//카메라 흔들림 0.01f
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->StartCameraShake(camShake, 0.01f);
+		}
 	}
 	UPlayer1MoveComponent* moveVar = FindComponentByClass<UPlayer1MoveComponent>();
 	UPlayer1AttackComponent* attackVar = FindComponentByClass<UPlayer1AttackComponent>();
