@@ -81,7 +81,7 @@ AActionPlayer1::AActionPlayer1()
 	skill2EffectComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Skill2 Effect"));
 	skill2EffectComp->SetupAttachment(skill2BoxComp);
 	skill2EffectComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	ConstructorHelpers::FObjectFinder<UParticleSystem> skill2Effect(TEXT("ParticleSystem'/Game/FXVarietyPack/Particles/P_ky_healAura_2.P_ky_healAura_2'"));
+	ConstructorHelpers::FObjectFinder<UParticleSystem> skill2Effect(TEXT("ParticleSystem'/Game/Particles/P_P1_Skill2Effect.P_P1_Skill2Effect'"));
 	if (skill2Effect.Succeeded())
 	{
 		skill2EffectComp->SetTemplate(skill2Effect.Object);
